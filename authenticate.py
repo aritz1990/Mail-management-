@@ -33,8 +33,15 @@ def main():
 
     # Console-based flow — no localhost server required (works from any device/OS)
     auth_url, _ = flow.authorization_url(prompt="consent")
-    print("\nVisit this URL in your browser to authorise Gmail + Drive access:")
-    print(f"\n  {auth_url}\n")
+
+    # Save URL to file to avoid terminal truncation issues
+    url_file = SCRIPT_DIR / "auth_url.txt"
+    with open(url_file, "w") as f:
+        f.write(auth_url)
+
+    print("\nAuth URL saved to auth_url.txt")
+    print("Run this to see the full URL:  cat auth_url.txt")
+    print("\nCopy the full URL and open it in your browser.")
     print("After approving, Google will show you an authorisation code.")
     code = input("Paste the authorisation code here: ").strip()
 
