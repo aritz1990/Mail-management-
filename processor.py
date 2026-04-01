@@ -47,9 +47,8 @@ CREDENTIALS_FILE = SCRIPT_DIR / "credentials.json"
 TOKEN_FILE = SCRIPT_DIR / "token.pickle"
 PROCESSED_LOG = SCRIPT_DIR / "processed.json"
 
-# Name of the Google Drive folder where pitch decks will be saved.
-# Override with the PITCH_DECKS_FOLDER_NAME environment variable if needed.
-DRIVE_FOLDER_NAME = os.environ.get("PITCH_DECKS_FOLDER_NAME", "Pitch Decks")
+# Google Drive folder ID where pitch decks will be saved.
+DRIVE_FOLDER_ID = "1bg0NQVwuP82wkIWvXzlJCrs-WHYk12DD"
 
 # Only attachments with these MIME types are considered
 PITCH_DECK_MIME_TYPES = {
@@ -266,7 +265,7 @@ def sanitise_filename(name: str) -> str:
 def process_emails():
     gmail_service = get_gmail_service()
     drive_service = get_drive_service()
-    folder_id = get_or_create_drive_folder(drive_service, DRIVE_FOLDER_NAME)
+    folder_id = DRIVE_FOLDER_ID
     processed = load_processed()
 
     cutoff = datetime.now(timezone.utc) - timedelta(minutes=65)
