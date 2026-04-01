@@ -8,6 +8,8 @@ use the saved token automatically and refresh it when needed.
 
 import pickle
 import sys
+import urllib.request
+import urllib.parse
 from pathlib import Path
 
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -40,8 +42,17 @@ def main():
         f.write(auth_url)
 
     print("\nAuth URL saved to auth_url.txt")
-    print("Run this to see the full URL:  cat auth_url.txt")
-    print("\nCopy the full URL and open it in your browser.")
+
+    # Shorten the URL so it's easy to copy on any device
+    try:
+        short = urllib.request.urlopen(
+            "https://tinyurl.com/api-create.php?url=" + urllib.parse.quote(auth_url, safe=""),
+            timeout=5
+        ).read().decode()
+        print(f"\nOpen this short URL in your browser:\n\n  {short}\n")
+    except Exception:
+        print("\nCould not shorten URL. Open auth_url.txt in the editor and copy the full URL.")
+
     print("After approving, Google will show you an authorisation code.")
     code = input("Paste the authorisation code here: ").strip()
 
