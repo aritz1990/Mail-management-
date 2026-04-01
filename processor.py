@@ -47,8 +47,12 @@ CREDENTIALS_FILE = SCRIPT_DIR / "credentials.json"
 TOKEN_FILE = SCRIPT_DIR / "token.pickle"
 PROCESSED_LOG = SCRIPT_DIR / "processed.json"
 
-# Google Drive folder ID where pitch decks will be saved.
-DRIVE_FOLDER_ID = "1bg0NQVwuP82wkIWvXzlJCrs-WHYk12DD"
+# Google Drive folder IDs where pitch decks will be saved.
+# Files will be uploaded to all folders simultaneously.
+DRIVE_FOLDER_IDS = [
+    "1bg0NQVwuP82wkIWvXzlJCrs-WHYk12DD",  # ar@angelinvest.ventures
+    "13CKApFKyLmlcl90Sa-xEXMcaqHnkz3tB",  # anna.ritz@legata.cc
+]
 
 # Only attachments with these MIME types are considered
 PITCH_DECK_MIME_TYPES = {
@@ -126,9 +130,9 @@ def get_or_create_drive_folder(drive_service, folder_name: str) -> str:
     return folder["id"]
 
 
-def upload_to_drive(drive_service, folder_id: str, filename: str, data: bytes, mime_type: str) -> dict:
-    """Upload bytes directly to a Drive folder. Returns the file resource."""
-    meta = {"name": filename, "parents": [folder_id]}
+def upload_to_drive(drive_service, folder_ids: list, filename: str, data: bytes, mime_type: str) -> dict:
+    """Upload bytes to multiple Drive folders simultaneously. Returns the file resource."""
+    meta = {"name": filename, "parents": folder_ids}
     media = MediaIoBaseUpload(io.BytesIO(data), mimetype=mime_type, resumable=False)
     return drive_service.files().create(
         body=meta, media_body=media, fields="id, name, webViewLink"
@@ -265,7 +269,7 @@ def sanitise_filename(name: str) -> str:
 def process_emails():
     gmail_service = get_gmail_service()
     drive_service = get_drive_service()
-    folder_id = DRIVE_FOLDER_ID
+    folder_ids = DRIVE_FOLDER_IDS
     processed = load_processed()
 
     cutoff = datetime.now(timezone.utc) - timedelta(minutes=65)
@@ -323,7 +327,7 @@ def process_emails():
                 upload_name = f"{timestamp}_{safe_name}"
 
                 uploaded = upload_to_drive(
-                    drive_service, folder_id, upload_name, attachment_data, mime_type
+                    drive_service, folder_ids, upload_name, attachment_data, mime_type
                 )
                 print(f"    Saved to Drive: {uploaded.get('name')} — {uploaded.get('webViewLink', '')}")
                 saved_count += 1
