@@ -84,6 +84,8 @@ def get_credentials():
             flow = InstalledAppFlow.from_client_secrets_file(
                 str(CREDENTIALS_FILE), SCOPES
             )
+            # Force correct redirect_uri to avoid credentials.json copy-paste corruption
+            flow.redirect_uri = "http://localhost"
             # Console-based flow — no localhost server required (works from any device)
             auth_url, _ = flow.authorization_url(prompt="consent")
             print("\nAuthorisation required. Visit this URL in your browser:")
