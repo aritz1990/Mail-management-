@@ -2,14 +2,15 @@
 """
 Pitch Deck Email Processor
 Checks Gmail hourly for emails containing pitch decks (funding round decks),
-analyses them with Claude, and saves qualifying attachments to Google Drive.
+analyses them with Claude, and saves qualifying attachments directly to Google Drive.
 
 SETUP: See README.md for first-time setup instructions.
-CONFIG: Edit the DRIVE_PITCH_DECKS_FOLDER path below to match your Google Drive.
+CONFIG: Set PITCH_DECKS_FOLDER_NAME env var, or edit DRIVE_FOLDER_NAME below.
 """
 
 import os
 import sys
+import io
 import json
 import base64
 import pickle
@@ -17,10 +18,11 @@ import hashlib
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-# Gmail API
+# Gmail & Drive API
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseUpload
 
 # Claude
 import anthropic
@@ -28,34 +30,26 @@ import anthropic
 # File extraction
 try:
     from pypdf import PdfReader
-    import io as _io
     PDF_SUPPORT = True
 except ImportError:
     PDF_SUPPORT = False
 
 try:
     from pptx import Presentation
-    import io as _io
     PPTX_SUPPORT = True
 except ImportError:
     PPTX_SUPPORT = False
 
-# ── Config — edit these to match your environment ─────────────────────────────
+# ── Config ─────────────────────────────────────────────────────────────────────
 
 SCRIPT_DIR = Path(__file__).parent
 CREDENTIALS_FILE = SCRIPT_DIR / "credentials.json"
 TOKEN_FILE = SCRIPT_DIR / "token.pickle"
 PROCESSED_LOG = SCRIPT_DIR / "processed.json"
 
-# !! Change this to your own Google Drive Pitch Decks folder path !!
-# On macOS with Google Drive for Desktop, it will look something like:
-# /Users/YOUR_NAME/Library/CloudStorage/GoogleDrive-YOUR_EMAIL/Shared drives/FOLDER/Pitch Decks
-DRIVE_PITCH_DECKS_FOLDER = Path(
-    os.environ.get(
-        "PITCH_DECKS_FOLDER",
-        str(Path.home() / "Google Drive" / "Pitch Decks")  # fallback default
-    )
-)
+# Name of the Google Drive folder where pitch decks will be saved.
+# Override with the PITCH_DECKS_FOLDER_NAME environment variable if needed.
+DRIVE_FOLDER_NAME = os.environ.get("PITCH_DECKS_FOLDER_NAME", "Pitch Decks")
 
 # Only attachments with these MIME types are considered
 PITCH_DECK_MIME_TYPES = {
@@ -64,11 +58,16 @@ PITCH_DECK_MIME_TYPES = {
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 }
 
-GMAIL_SCOPES = ["https://www.googleapis.com/auth/gmail.readonly"]
+# Both Gmail (read) and Drive (upload) scopes
+SCOPES = [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/drive.file",
+]
 
-# ── Auth ──────────────────────────────────────────────────────────────────────
+# ── Auth ───────────────────────────────────────────────────────────────────────
 
-def get_gmail_service():
+def get_credentials():
+    """Load or refresh OAuth credentials, prompting via console if needed."""
     creds = None
     if TOKEN_FILE.exists():
         with open(TOKEN_FILE, "rb") as f:
@@ -83,16 +82,61 @@ def get_gmail_service():
                 print("Follow the setup guide: see README.md in this folder.")
                 sys.exit(1)
             flow = InstalledAppFlow.from_client_secrets_file(
-                str(CREDENTIALS_FILE), GMAIL_SCOPES
+                str(CREDENTIALS_FILE), SCOPES
             )
-            creds = flow.run_local_server(port=0, open_browser=False)
+            # Force correct redirect_uri to avoid credentials.json copy-paste corruption
+            flow.redirect_uri = "http://localhost"
+            # Console-based flow — no localhost server required (works from any device)
+            auth_url, _ = flow.authorization_url(prompt="consent")
+            print("\nAuthorisation required. Visit this URL in your browser:")
+            print(f"\n  {auth_url}\n")
+            code = input("Paste the authorisation code here: ").strip()
+            flow.fetch_token(code=code)
+            creds = flow.credentials
+
         with open(TOKEN_FILE, "wb") as f:
             pickle.dump(creds, f)
 
-    return build("gmail", "v1", credentials=creds)
+    return creds
 
 
-# ── Processed log ─────────────────────────────────────────────────────────────
+def get_gmail_service():
+    return build("gmail", "v1", credentials=get_credentials())
+
+
+def get_drive_service():
+    return build("drive", "v3", credentials=get_credentials())
+
+
+# ── Drive helpers ──────────────────────────────────────────────────────────────
+
+def get_or_create_drive_folder(drive_service, folder_name: str) -> str:
+    """Return the Drive folder ID, creating the folder if it doesn't exist."""
+    safe = folder_name.replace("'", "\\'")
+    results = drive_service.files().list(
+        q=f"name='{safe}' and mimeType='application/vnd.google-apps.folder' and trashed=false",
+        fields="files(id, name)",
+        spaces="drive",
+    ).execute()
+    files = results.get("files", [])
+    if files:
+        return files[0]["id"]
+    meta = {"name": folder_name, "mimeType": "application/vnd.google-apps.folder"}
+    folder = drive_service.files().create(body=meta, fields="id").execute()
+    print(f"  Created Drive folder '{folder_name}'")
+    return folder["id"]
+
+
+def upload_to_drive(drive_service, folder_id: str, filename: str, data: bytes, mime_type: str) -> dict:
+    """Upload bytes directly to a Drive folder. Returns the file resource."""
+    meta = {"name": filename, "parents": [folder_id]}
+    media = MediaIoBaseUpload(io.BytesIO(data), mimetype=mime_type, resumable=False)
+    return drive_service.files().create(
+        body=meta, media_body=media, fields="id, name, webViewLink"
+    ).execute()
+
+
+# ── Processed log ──────────────────────────────────────────────────────────────
 
 def load_processed() -> set:
     if PROCESSED_LOG.exists():
@@ -106,13 +150,13 @@ def save_processed(processed: set):
         json.dump(list(processed), f, indent=2)
 
 
-# ── Text extraction ───────────────────────────────────────────────────────────
+# ── Text extraction ────────────────────────────────────────────────────────────
 
 def extract_text_from_pdf(data: bytes) -> str:
     if not PDF_SUPPORT:
         return "[PDF text extraction unavailable — install pypdf]"
     try:
-        reader = PdfReader(_io.BytesIO(data))
+        reader = PdfReader(io.BytesIO(data))
         pages = [page.extract_text() or "" for page in reader.pages[:20]]
         return "\n".join(pages)[:8000]
     except Exception as e:
@@ -123,7 +167,7 @@ def extract_text_from_pptx(data: bytes) -> str:
     if not PPTX_SUPPORT:
         return "[PPTX text extraction unavailable — install python-pptx]"
     try:
-        prs = Presentation(_io.BytesIO(data))
+        prs = Presentation(io.BytesIO(data))
         texts = []
         for slide in prs.slides:
             for shape in slide.shapes:
@@ -145,7 +189,7 @@ def extract_text(data: bytes, mime_type: str) -> str:
     return ""
 
 
-# ── Claude analysis ───────────────────────────────────────────────────────────
+# ── Claude analysis ────────────────────────────────────────────────────────────
 
 def is_pitch_deck(email_subject: str, email_body: str, attachment_name: str, attachment_text: str) -> tuple[bool, str]:
     """
@@ -192,7 +236,7 @@ Respond with a JSON object only, no other text:
     return result.get("is_pitch_deck", False), result.get("reasoning", "")
 
 
-# ── Gmail helpers ─────────────────────────────────────────────────────────────
+# ── Gmail helpers ──────────────────────────────────────────────────────────────
 
 def get_email_body(payload) -> str:
     if payload.get("mimeType") == "text/plain":
@@ -217,10 +261,12 @@ def sanitise_filename(name: str) -> str:
     return "".join(c for c in name if c not in r'\/:*?"<>|').strip()
 
 
-# ── Main processing ───────────────────────────────────────────────────────────
+# ── Main processing ────────────────────────────────────────────────────────────
 
 def process_emails():
-    service = get_gmail_service()
+    gmail_service = get_gmail_service()
+    drive_service = get_drive_service()
+    folder_id = get_or_create_drive_folder(drive_service, DRIVE_FOLDER_NAME)
     processed = load_processed()
 
     cutoff = datetime.now(timezone.utc) - timedelta(minutes=65)
@@ -229,7 +275,7 @@ def process_emails():
 
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] Searching Gmail: {query}")
 
-    results = service.users().messages().list(
+    results = gmail_service.users().messages().list(
         userId="me", q=query, maxResults=50
     ).execute()
 
@@ -244,7 +290,7 @@ def process_emails():
         if msg_id in processed:
             continue
 
-        msg = service.users().messages().get(
+        msg = gmail_service.users().messages().get(
             userId="me", id=msg_id, format="full"
         ).execute()
 
@@ -266,7 +312,7 @@ def process_emails():
 
             print(f"    Attachment: {filename} ({mime_type})")
 
-            attachment_data = download_attachment(service, msg_id, attachment_id)
+            attachment_data = download_attachment(gmail_service, msg_id, attachment_id)
             attachment_text = extract_text(attachment_data, mime_type)
 
             result, reasoning = is_pitch_deck(subject, body, filename, attachment_text)
@@ -275,16 +321,12 @@ def process_emails():
             if result:
                 safe_name = sanitise_filename(filename)
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M")
-                dest = DRIVE_PITCH_DECKS_FOLDER / f"{timestamp}_{safe_name}"
+                upload_name = f"{timestamp}_{safe_name}"
 
-                content_hash = hashlib.md5(attachment_data).hexdigest()[:8]
-                if dest.exists():
-                    stem = dest.stem
-                    dest = DRIVE_PITCH_DECKS_FOLDER / f"{stem}_{content_hash}{dest.suffix}"
-
-                DRIVE_PITCH_DECKS_FOLDER.mkdir(parents=True, exist_ok=True)
-                dest.write_bytes(attachment_data)
-                print(f"    ✓ Saved to: {dest.name}")
+                uploaded = upload_to_drive(
+                    drive_service, folder_id, upload_name, attachment_data, mime_type
+                )
+                print(f"    Saved to Drive: {uploaded.get('name')} — {uploaded.get('webViewLink', '')}")
                 saved_count += 1
 
         processed.add(msg_id)
