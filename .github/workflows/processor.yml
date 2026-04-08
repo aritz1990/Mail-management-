@@ -31,4 +31,5 @@ jobs:
       - name: Run processor
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ATTIO_API_KEY: ${{ secrets.ATTIO_API_KEY }}
         run: python3 processor.py

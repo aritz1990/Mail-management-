@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 """
 Pitch Deck Email Processor
-Checks Gmail hourly for emails containing pitch decks (funding round decks),
-analyses them with Claude, and saves qualifying attachments directly to Google Drive.
+Checks Gmail daily for emails containing pitch decks (funding round decks),
+analyses them with Claude, saves to Google Drive, and updates Attio CRM.
 
 SETUP: See README.md for first-time setup instructions.
-CONFIG: Set PITCH_DECKS_FOLDER_NAME env var, or edit DRIVE_FOLDER_NAME below.
 """
 
 import os
@@ -14,7 +13,7 @@ import io
 import json
 import base64
 import pickle
-import hashlib
+import email.mime.text
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -26,6 +25,9 @@ from googleapiclient.http import MediaIoBaseUpload
 
 # Claude
 import anthropic
+
+# Attio CRM
+import attio
 
 # File extraction
 try:
@@ -47,12 +49,13 @@ CREDENTIALS_FILE = SCRIPT_DIR / "credentials.json"
 TOKEN_FILE = SCRIPT_DIR / "token.pickle"
 PROCESSED_LOG = SCRIPT_DIR / "processed.json"
 
-# Google Drive folder IDs where pitch decks will be saved.
-# Files will be uploaded to all folders simultaneously.
+# Google Drive folder IDs where pitch decks will be saved simultaneously
 DRIVE_FOLDER_IDS = [
     "1bg0NQVwuP82wkIWvXzlJCrs-WHYk12DD",  # ar@angelinvest.ventures
     "13CKApFKyLmlcl90Sa-xEXMcaqHnkz3tB",  # anna.ritz@legata.cc
 ]
+
+NOTIFICATION_EMAIL = "ar@angelinvest.ventures"
 
 # Only attachments with these MIME types are considered
 PITCH_DECK_MIME_TYPES = {
@@ -61,9 +64,9 @@ PITCH_DECK_MIME_TYPES = {
     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
 }
 
-# Both Gmail (read) and Drive (upload) scopes
 SCOPES = [
     "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.send",
     "https://www.googleapis.com/auth/drive.file",
 ]
 
@@ -112,23 +115,6 @@ def get_drive_service():
 
 
 # ── Drive helpers ──────────────────────────────────────────────────────────────
-
-def get_or_create_drive_folder(drive_service, folder_name: str) -> str:
-    """Return the Drive folder ID, creating the folder if it doesn't exist."""
-    safe = folder_name.replace("'", "\\'")
-    results = drive_service.files().list(
-        q=f"name='{safe}' and mimeType='application/vnd.google-apps.folder' and trashed=false",
-        fields="files(id, name)",
-        spaces="drive",
-    ).execute()
-    files = results.get("files", [])
-    if files:
-        return files[0]["id"]
-    meta = {"name": folder_name, "mimeType": "application/vnd.google-apps.folder"}
-    folder = drive_service.files().create(body=meta, fields="id").execute()
-    print(f"  Created Drive folder '{folder_name}'")
-    return folder["id"]
-
 
 def upload_to_drive(drive_service, folder_ids: list, filename: str, data: bytes, mime_type: str) -> dict:
     """Upload bytes to multiple Drive folders simultaneously. Returns the file resource."""
@@ -194,14 +180,15 @@ def extract_text(data: bytes, mime_type: str) -> str:
 
 # ── Claude analysis ────────────────────────────────────────────────────────────
 
-def is_pitch_deck(email_subject: str, email_body: str, attachment_name: str, attachment_text: str) -> tuple[bool, str]:
+def analyze_deck(email_subject: str, email_body: str, attachment_name: str, attachment_text: str) -> dict:
     """
-    Ask Claude whether this email contains a genuine funding pitch deck.
-    Returns (is_pitch_deck: bool, reasoning: str)
+    Ask Claude whether this is a pitch deck and extract company information.
+    Returns a dict with: is_pitch_deck, confidence, reasoning,
+                         company_name, trade_name, domain, founders
     """
     client = anthropic.Anthropic()
 
-    prompt = f"""You are analysing an email to determine whether it contains a startup or company funding pitch deck (i.e. a deck used to raise investment).
+    prompt = f"""You are analysing an email to determine whether it contains a startup or company funding pitch deck (i.e. a deck used to raise investment). If it is a pitch deck, also extract key company information.
 
 EMAIL SUBJECT:
 {email_subject}
@@ -215,18 +202,20 @@ ATTACHMENT FILENAME:
 ATTACHMENT TEXT (first 4000 chars):
 {attachment_text[:4000]}
 
-Decide: is this attachment a funding/investment pitch deck for a startup or company?
-
 Respond with a JSON object only, no other text:
 {{
   "is_pitch_deck": true or false,
   "confidence": "high" | "medium" | "low",
-  "reasoning": "one sentence explanation"
+  "reasoning": "one sentence explanation",
+  "company_name": "official/legal company name, or null if not a pitch deck",
+  "trade_name": "brand/trading name if different from company_name, else null",
+  "domain": "company website domain e.g. sprive.com (no https://), or null if not found",
+  "founders": ["founder full name 1", "founder full name 2"]
 }}"""
 
     message = client.messages.create(
         model="claude-opus-4-6",
-        max_tokens=256,
+        max_tokens=512,
         messages=[{"role": "user", "content": prompt}],
     )
 
@@ -235,8 +224,20 @@ Respond with a JSON object only, no other text:
         text = text.split("```")[1]
         if text.startswith("json"):
             text = text[4:]
-    result = json.loads(text)
-    return result.get("is_pitch_deck", False), result.get("reasoning", "")
+    return json.loads(text)
+
+
+# ── Email notifications ────────────────────────────────────────────────────────
+
+def send_notification_email(gmail_service, subject: str, body: str):
+    """Send a notification email via Gmail API."""
+    msg = email.mime.text.MIMEText(body)
+    msg["to"] = NOTIFICATION_EMAIL
+    msg["from"] = NOTIFICATION_EMAIL
+    msg["subject"] = subject
+    raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+    gmail_service.users().messages().send(userId="me", body={"raw": raw}).execute()
+    print(f"    Notification sent: {subject}")
 
 
 # ── Gmail helpers ──────────────────────────────────────────────────────────────
@@ -264,15 +265,73 @@ def sanitise_filename(name: str) -> str:
     return "".join(c for c in name if c not in r'\/:*?"<>|').strip()
 
 
+# ── Attio integration ──────────────────────────────────────────────────────────
+
+def handle_attio(gmail_service, analysis: dict, drive_link: str, email_subject: str, sender: str):
+    """Match company in Attio and create/update record. Never deletes anything."""
+    company_name = analysis.get("company_name") or "Unknown Company"
+    trade_name = analysis.get("trade_name")
+    domain = analysis.get("domain")
+    founders = analysis.get("founders", [])
+
+    print(f"    Attio: matching '{company_name}' (domain: {domain}, trade name: {trade_name})")
+
+    status, candidates = attio.match_company(company_name, domain, trade_name)
+
+    if status == "single_match":
+        record = candidates[0]
+        record_id = attio.get_record_id(record)
+        attio_name = attio.get_company_name(record)
+
+        if attio.is_owned_by_anna_ritz(record):
+            attio.update_pitch_deck_url(record_id, drive_link)
+            print(f"    Attio: updated '{attio_name}' with pitch deck URL")
+        else:
+            subject = f"Pitch deck received — {company_name} (owner is not you)"
+            body = (
+                f"A pitch deck was received and saved to Drive, but the Attio record is owned by someone else.\n\n"
+                f"Company: {company_name}\n"
+                f"Attio record: {attio_name}\n"
+                f"Email subject: {email_subject}\n"
+                f"Sender: {sender}\n"
+                f"Drive link: {drive_link}\n\n"
+                f"Please update Attio manually if needed."
+            )
+            send_notification_email(gmail_service, subject, body)
+
+    elif status == "no_match":
+        attio.create_company(company_name, domain, drive_link)
+        print(f"    Attio: created new record for '{company_name}'")
+
+    elif status == "ambiguous":
+        candidate_names = [attio.get_company_name(c) for c in candidates]
+        subject = f"Pitch deck received — ambiguous Attio match: {company_name}"
+        body = (
+            f"A pitch deck was received and saved to Drive, but Attio matching was ambiguous.\n\n"
+            f"Extracted company name: {company_name}\n"
+            f"Trade name: {trade_name or 'N/A'}\n"
+            f"Domain: {domain or 'N/A'}\n"
+            f"Founders: {', '.join(founders) or 'N/A'}\n"
+            f"Email subject: {email_subject}\n"
+            f"Sender: {sender}\n"
+            f"Drive link: {drive_link}\n\n"
+            f"Attio candidates found:\n" +
+            "\n".join(f"  - {name}" for name in candidate_names) +
+            "\n\nPlease update Attio manually."
+        )
+        send_notification_email(gmail_service, subject, body)
+
+
 # ── Main processing ────────────────────────────────────────────────────────────
 
 def process_emails():
     gmail_service = get_gmail_service()
     drive_service = get_drive_service()
-    folder_ids = DRIVE_FOLDER_IDS
+    attio.initialise()
     processed = load_processed()
 
-    cutoff = datetime.now(timezone.utc) - timedelta(minutes=65)
+    # Look back 25 hours to cover the daily run with overlap
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=25)
     after_epoch = int(cutoff.timestamp())
     query = f"has:attachment after:{after_epoch}"
 
@@ -283,7 +342,7 @@ def process_emails():
     ).execute()
 
     messages = results.get("messages", [])
-    print(f"  Found {len(messages)} emails with attachments in the last hour.")
+    print(f"  Found {len(messages)} emails with attachments in the last 25 hours.")
 
     saved_count = 0
 
@@ -318,19 +377,26 @@ def process_emails():
             attachment_data = download_attachment(gmail_service, msg_id, attachment_id)
             attachment_text = extract_text(attachment_data, mime_type)
 
-            result, reasoning = is_pitch_deck(subject, body, filename, attachment_text)
-            print(f"    Claude says pitch deck: {result} — {reasoning}")
+            analysis = analyze_deck(subject, body, filename, attachment_text)
+            print(f"    Claude says pitch deck: {analysis.get('is_pitch_deck')} — {analysis.get('reasoning')}")
 
-            if result:
+            if analysis.get("is_pitch_deck"):
                 safe_name = sanitise_filename(filename)
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M")
                 upload_name = f"{timestamp}_{safe_name}"
 
                 uploaded = upload_to_drive(
-                    drive_service, folder_ids, upload_name, attachment_data, mime_type
+                    drive_service, DRIVE_FOLDER_IDS, upload_name, attachment_data, mime_type
                 )
-                print(f"    Saved to Drive: {uploaded.get('name')} — {uploaded.get('webViewLink', '')}")
+                drive_link = uploaded.get("webViewLink", "")
+                print(f"    Saved to Drive: {uploaded.get('name')} — {drive_link}")
                 saved_count += 1
+
+                if os.environ.get("ATTIO_API_KEY"):
+                    try:
+                        handle_attio(gmail_service, analysis, drive_link, subject, sender)
+                    except Exception as e:
+                        print(f"    Attio error (non-fatal): {e}")
 
         processed.add(msg_id)
 
