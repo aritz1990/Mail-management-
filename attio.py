@@ -23,9 +23,8 @@ def _headers():
 
 def get_record_url(record_id: str) -> str:
     """Return a direct link to the Attio company record."""
-    if _workspace_slug:
-        return f"https://app.attio.com/{_workspace_slug}/companies/{record_id}"
-    return f"https://app.attio.com/companies/{record_id}"
+    slug = _workspace_slug or "angelinvest"
+    return f"https://app.attio.com/{slug}/company/{record_id}/overview"
 
 
 def initialise():
