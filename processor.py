@@ -369,7 +369,7 @@ def process_emails():
     # Look back 25 hours to cover the daily run with overlap
     cutoff = datetime.now(timezone.utc) - timedelta(hours=25)
     after_epoch = int(cutoff.timestamp())
-    query = f"has:attachment after:{after_epoch}"
+    query = f"(has:attachment OR docsend.com/view) after:{after_epoch}"
 
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M')}] Searching Gmail: {query}")
 

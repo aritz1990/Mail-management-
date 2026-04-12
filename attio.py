@@ -39,10 +39,20 @@ def initialise():
     # Discover Anna Ritz's member ID
     r = requests.get(f"{BASE_URL}/workspace_members", headers=_headers())
     r.raise_for_status()
-    for member in r.json().get("data", []):
-        for email in member.get("email_addresses", []):
-            if email.get("email_address") == ANNA_RITZ_EMAIL:
-                _anna_ritz_member_id = member["id"]["workspace_member_id"]
+    members_data = r.json().get("data", [])
+    print(f"  Attio workspace members found: {len(members_data)}")
+    for member in members_data:
+        # Support both list and single email_address field layouts
+        emails = member.get("email_addresses", [])
+        if isinstance(emails, str):
+            emails = [{"email_address": emails}]
+        for email_entry in emails:
+            addr = email_entry.get("email_address") or email_entry.get("value", "")
+            if addr.lower() == ANNA_RITZ_EMAIL.lower():
+                _anna_ritz_member_id = (
+                    member.get("id", {}).get("workspace_member_id")
+                    or member.get("workspace_member_id")
+                )
                 break
     print(f"  Anna Ritz member ID: {_anna_ritz_member_id}")
 
