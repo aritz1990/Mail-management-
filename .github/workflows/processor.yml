@@ -21,7 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install google-auth-oauthlib google-api-python-client \
-                      anthropic pypdf python-pptx
+                      anthropic pypdf python-pptx requests
 
       - name: Restore credentials and token
         run: |
