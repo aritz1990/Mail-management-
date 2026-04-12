@@ -343,7 +343,7 @@ def handle_attio(gmail_service, analysis: dict, drive_link: str, email_subject: 
         for record in candidates:
             rid = attio.get_record_id(record)
             name = attio.get_company_name(record)
-            attio_record_url = f"https://app.attio.com/objects/companies/{rid}"
+            attio_record_url = attio.get_record_url(rid)
             if apps_script_url:
                 params = urllib.parse.urlencode({
                     "record_id": rid,
