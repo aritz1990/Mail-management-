@@ -44,18 +44,10 @@ def initialise():
     if members_data:
         print(f"  First member sample: {members_data[0]}")
     for member in members_data:
-        # Support both list and single email_address field layouts
-        emails = member.get("email_addresses", [])
-        if isinstance(emails, str):
-            emails = [{"email_address": emails}]
-        for email_entry in emails:
-            addr = email_entry.get("email_address") or email_entry.get("value", "")
-            if addr.lower() == ANNA_RITZ_EMAIL.lower():
-                _anna_ritz_member_id = (
-                    member.get("id", {}).get("workspace_member_id")
-                    or member.get("workspace_member_id")
-                )
-                break
+        addr = member.get("email_address", "")
+        if addr.lower() == ANNA_RITZ_EMAIL.lower():
+            _anna_ritz_member_id = member["id"]["workspace_member_id"]
+            break
     print(f"  Anna Ritz member ID: {_anna_ritz_member_id}")
 
 

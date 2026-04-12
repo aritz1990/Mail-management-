@@ -126,12 +126,26 @@ def get_drive_service():
 # ── Drive helpers ──────────────────────────────────────────────────────────────
 
 def upload_to_drive(drive_service, folder_ids: list, filename: str, data: bytes, mime_type: str) -> dict:
-    """Upload bytes to multiple Drive folders simultaneously. Returns the file resource."""
-    meta = {"name": filename, "parents": folder_ids}
+    """Upload bytes to the first Drive folder, then add remaining folders as parents."""
+    meta = {"name": filename, "parents": [folder_ids[0]]}
     media = MediaIoBaseUpload(io.BytesIO(data), mimetype=mime_type, resumable=False)
-    return drive_service.files().create(
-        body=meta, media_body=media, fields="id, name, webViewLink"
+    file_resource = drive_service.files().create(
+        body=meta, media_body=media, fields="id, name, webViewLink",
+        supportsAllDrives=True,
     ).execute()
+    # Add any additional folders as parents one by one
+    for folder_id in folder_ids[1:]:
+        try:
+            drive_service.files().update(
+                fileId=file_resource["id"],
+                addParents=folder_id,
+                fields="id, parents",
+                supportsAllDrives=True,
+            ).execute()
+            print(f"    Also added to folder: {folder_id}")
+        except Exception as e:
+            print(f"    Could not add folder {folder_id} (may need sharing): {e}")
+    return file_resource
 
 
 # ── Processed log ──────────────────────────────────────────────────────────────
