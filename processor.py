@@ -343,6 +343,7 @@ def handle_attio(gmail_service, analysis: dict, drive_link: str, email_subject: 
         for record in candidates:
             rid = attio.get_record_id(record)
             name = attio.get_company_name(record)
+            attio_record_url = f"https://app.attio.com/objects/companies/{rid}"
             if apps_script_url:
                 params = urllib.parse.urlencode({
                     "record_id": rid,
@@ -352,11 +353,13 @@ def handle_attio(gmail_service, analysis: dict, drive_link: str, email_subject: 
                 })
                 confirm_url = f"{apps_script_url}?{params}"
                 buttons_html += (
-                    f'<p><a href="{confirm_url}" style="background:#2e7d32;color:white;'
+                    f'<p style="margin:8px 0">'
+                    f'<a href="{attio_record_url}" style="color:#1565c0;font-family:sans-serif;margin-right:16px">View: {name}</a>'
+                    f'<a href="{confirm_url}" style="background:#2e7d32;color:white;'
                     f'padding:10px 20px;text-decoration:none;border-radius:4px;'
-                    f'display:inline-block;font-family:sans-serif">✓ Confirm: {name}</a></p>\n'
+                    f'display:inline-block;font-family:sans-serif">✓ Confirm</a></p>\n'
                 )
-                buttons_text += f"\nConfirm '{name}':\n{confirm_url}\n"
+                buttons_text += f"\nView '{name}' in Attio: {attio_record_url}\nConfirm: {confirm_url}\n"
 
         subject = f"Pitch deck received — ambiguous Attio match: {company_name}"
         plain_body = (
