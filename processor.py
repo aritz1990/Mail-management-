@@ -14,7 +14,9 @@ import re
 import json
 import base64
 import pickle
+import urllib.parse
 import email.mime.text
+import email.mime.multipart
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -252,9 +254,14 @@ Respond with a JSON object only, no other text:
 
 # ── Email notifications ────────────────────────────────────────────────────────
 
-def send_notification_email(gmail_service, subject: str, body: str):
-    """Send a notification email via Gmail API."""
-    msg = email.mime.text.MIMEText(body)
+def send_notification_email(gmail_service, subject: str, body: str, html_body: str = None):
+    """Send a notification email via Gmail API. Sends HTML if html_body is provided."""
+    if html_body:
+        msg = email.mime.multipart.MIMEMultipart("alternative")
+        msg.attach(email.mime.text.MIMEText(body, "plain"))
+        msg.attach(email.mime.text.MIMEText(html_body, "html"))
+    else:
+        msg = email.mime.text.MIMEText(body)
     msg["to"] = NOTIFICATION_EMAIL
     msg["from"] = NOTIFICATION_EMAIL
     msg["subject"] = subject
@@ -327,9 +334,32 @@ def handle_attio(gmail_service, analysis: dict, drive_link: str, email_subject: 
         print(f"    Attio: created new record for '{company_name}'")
 
     elif status == "ambiguous":
-        candidate_names = [attio.get_company_name(c) for c in candidates]
+        apps_script_url = os.environ.get("APPS_SCRIPT_URL", "")
+        confirm_token = os.environ.get("CONFIRM_TOKEN", "")
+        slug = attio._pitch_deck_slug or "pitch_deck_url"
+
+        buttons_html = ""
+        buttons_text = ""
+        for record in candidates:
+            rid = attio.get_record_id(record)
+            name = attio.get_company_name(record)
+            if apps_script_url:
+                params = urllib.parse.urlencode({
+                    "record_id": rid,
+                    "drive_link": drive_link,
+                    "slug": slug,
+                    "token": confirm_token,
+                })
+                confirm_url = f"{apps_script_url}?{params}"
+                buttons_html += (
+                    f'<p><a href="{confirm_url}" style="background:#2e7d32;color:white;'
+                    f'padding:10px 20px;text-decoration:none;border-radius:4px;'
+                    f'display:inline-block;font-family:sans-serif">✓ Confirm: {name}</a></p>\n'
+                )
+                buttons_text += f"\nConfirm '{name}':\n{confirm_url}\n"
+
         subject = f"Pitch deck received — ambiguous Attio match: {company_name}"
-        body = (
+        plain_body = (
             f"A pitch deck was received and saved to Drive, but Attio matching was ambiguous.\n\n"
             f"Extracted company name: {company_name}\n"
             f"Trade name: {trade_name or 'N/A'}\n"
@@ -337,12 +367,24 @@ def handle_attio(gmail_service, analysis: dict, drive_link: str, email_subject: 
             f"Founders: {', '.join(founders) or 'N/A'}\n"
             f"Email subject: {email_subject}\n"
             f"Sender: {sender}\n"
-            f"Drive link: {drive_link}\n\n"
-            f"Attio candidates found:\n" +
-            "\n".join(f"  - {name}" for name in candidate_names) +
-            "\n\nPlease update Attio manually."
+            f"Drive link: {drive_link}\n"
+            f"{buttons_text}\n"
+            f"If none match, please update Attio manually."
         )
-        send_notification_email(gmail_service, subject, body)
+        html_body = f"""<p>A pitch deck was received and saved to Drive, but Attio matching was ambiguous.</p>
+<ul>
+  <li><b>Extracted name:</b> {company_name}</li>
+  <li><b>Trade name:</b> {trade_name or 'N/A'}</li>
+  <li><b>Domain:</b> {domain or 'N/A'}</li>
+  <li><b>Founders:</b> {', '.join(founders) or 'N/A'}</li>
+  <li><b>Email subject:</b> {email_subject}</li>
+  <li><b>Sender:</b> {sender}</li>
+  <li><b>Drive link:</b> <a href="{drive_link}">{drive_link}</a></li>
+</ul>
+<p><b>Tap the correct Attio record to confirm:</b></p>
+{buttons_html}
+<p>If none match, please update Attio manually.</p>"""
+        send_notification_email(gmail_service, subject, plain_body, html_body)
 
 
 # ── DocSend helpers ────────────────────────────────────────────────────────────
