@@ -459,6 +459,7 @@ def process_emails():
         print(f"\n  Email: '{subject}' from {sender}")
 
         parts = msg["payload"].get("parts", [])
+        deck_found = False
         for part in parts:
             filename = part.get("filename", "")
             mime_type = part.get("mimeType", "")
@@ -487,6 +488,7 @@ def process_emails():
                 print(f"    Saved to Drive: {uploaded.get('name')} — {drive_link}")
                 saved_count += 1
 
+                deck_found = True
                 if os.environ.get("ATTIO_API_KEY"):
                     try:
                         handle_attio(gmail_service, analysis, drive_link, subject, sender)
@@ -494,6 +496,10 @@ def process_emails():
                         print(f"    Attio error (non-fatal): {e}")
 
         # ── DocSend links in email body ──────────────────────────────────
+        # Skip if a pitch deck was already found via attachment in this email
+        if deck_found:
+            processed.add(msg_id)
+            continue
         docsend_links = extract_docsend_links(body)
         for ds_url in docsend_links:
             print(f"    DocSend link found: {ds_url}")
