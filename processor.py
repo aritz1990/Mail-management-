@@ -10,12 +10,15 @@ SETUP: See README.md for first-time setup instructions.
 import os
 import sys
 import io
+import re
 import json
 import base64
 import pickle
 import email.mime.text
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+import requests as _requests
 
 # Gmail & Drive API
 from google.auth.transport.requests import Request
@@ -56,6 +59,12 @@ DRIVE_FOLDER_IDS = [
 ]
 
 NOTIFICATION_EMAIL = "ar@angelinvest.ventures"
+
+# Email to pass to DocSend for access-controlled decks (the address decks are shared with)
+DOCSEND_EMAIL = "ar@angelinvest.ventures"
+
+# Regex to find DocSend links in email bodies
+_DOCSEND_RE = re.compile(r'https?://(?:www\.)?docsend\.com/view/[a-zA-Z0-9]+(?:/[a-zA-Z0-9]+)?')
 
 # Only attachments with these MIME types are considered
 PITCH_DECK_MIME_TYPES = {
@@ -322,6 +331,33 @@ def handle_attio(gmail_service, analysis: dict, drive_link: str, email_subject: 
         send_notification_email(gmail_service, subject, body)
 
 
+# ── DocSend helpers ────────────────────────────────────────────────────────────
+
+def extract_docsend_links(text: str) -> list:
+    """Return deduplicated list of DocSend URLs found in text."""
+    return list(dict.fromkeys(_DOCSEND_RE.findall(text)))
+
+
+def download_docsend_pdf(docsend_url: str) -> bytes | None:
+    """
+    Download a DocSend deck as PDF via docsend2pdf.com API.
+    Returns raw PDF bytes, or None if the download fails.
+    """
+    try:
+        r = _requests.post(
+            "https://docsend2pdf.com/api/convert",
+            json={"url": docsend_url, "email": DOCSEND_EMAIL},
+            timeout=90,
+        )
+        if r.status_code == 200:
+            return r.content
+        print(f"    DocSend API error {r.status_code}: {r.text[:300]}")
+        return None
+    except Exception as e:
+        print(f"    DocSend download error: {e}")
+        return None
+
+
 # ── Main processing ────────────────────────────────────────────────────────────
 
 def process_emails():
@@ -387,6 +423,50 @@ def process_emails():
 
                 uploaded = upload_to_drive(
                     drive_service, DRIVE_FOLDER_IDS, upload_name, attachment_data, mime_type
+                )
+                drive_link = uploaded.get("webViewLink", "")
+                print(f"    Saved to Drive: {uploaded.get('name')} — {drive_link}")
+                saved_count += 1
+
+                if os.environ.get("ATTIO_API_KEY"):
+                    try:
+                        handle_attio(gmail_service, analysis, drive_link, subject, sender)
+                    except Exception as e:
+                        print(f"    Attio error (non-fatal): {e}")
+
+        # ── DocSend links in email body ──────────────────────────────────
+        docsend_links = extract_docsend_links(body)
+        for ds_url in docsend_links:
+            print(f"    DocSend link found: {ds_url}")
+            pdf_data = download_docsend_pdf(ds_url)
+            if not pdf_data:
+                send_notification_email(
+                    gmail_service,
+                    f"DocSend download failed — {subject}",
+                    (
+                        f"A DocSend link was found in an email but could not be downloaded.\n\n"
+                        f"Link: {ds_url}\n"
+                        f"Email subject: {subject}\n"
+                        f"Sender: {sender}\n\n"
+                        f"The deck may be password-protected or require a specific email address."
+                    ),
+                )
+                continue
+
+            # Use the URL slug as the filename
+            slug = ds_url.rstrip("/").split("/")[-1]
+            filename = f"docsend_{slug}.pdf"
+            attachment_text = extract_text_from_pdf(pdf_data)
+
+            analysis = analyze_deck(subject, body, filename, attachment_text)
+            print(f"    Claude says pitch deck: {analysis.get('is_pitch_deck')} — {analysis.get('reasoning')}")
+
+            if analysis.get("is_pitch_deck"):
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M")
+                upload_name = f"{timestamp}_{filename}"
+
+                uploaded = upload_to_drive(
+                    drive_service, DRIVE_FOLDER_IDS, upload_name, pdf_data, "application/pdf"
                 )
                 drive_link = uploaded.get("webViewLink", "")
                 print(f"    Saved to Drive: {uploaded.get('name')} — {drive_link}")
