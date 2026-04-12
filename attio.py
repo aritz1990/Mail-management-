@@ -41,6 +41,8 @@ def initialise():
     r.raise_for_status()
     members_data = r.json().get("data", [])
     print(f"  Attio workspace members found: {len(members_data)}")
+    if members_data:
+        print(f"  First member sample: {members_data[0]}")
     for member in members_data:
         # Support both list and single email_address field layouts
         emails = member.get("email_addresses", [])
