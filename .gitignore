@@ -1,6 +1,5 @@
 venv/
 token.pickle
 credentials.json
-processed.json
 __pycache__/
 *.pyc
