@@ -13,6 +13,7 @@ ANNA_RITZ_EMAIL = "ar@angelinvest.ventures"
 # Discovered at runtime
 _pitch_deck_slug = None
 _anna_ritz_member_id = None
+_workspace_slug = None
 
 
 def _headers():
@@ -20,9 +21,22 @@ def _headers():
     return {"Authorization": f"Bearer {key}", "Content-Type": "application/json"}
 
 
+def get_record_url(record_id: str) -> str:
+    """Return a direct link to the Attio company record."""
+    if _workspace_slug:
+        return f"https://app.attio.com/{_workspace_slug}/companies/{record_id}"
+    return f"https://app.attio.com/companies/{record_id}"
+
+
 def initialise():
-    """Discover field slugs and Anna Ritz's member ID. Call once at startup."""
-    global _pitch_deck_slug, _anna_ritz_member_id
+    """Discover field slugs, workspace slug, and Anna Ritz's member ID. Call once at startup."""
+    global _pitch_deck_slug, _anna_ritz_member_id, _workspace_slug
+
+    # Discover workspace slug
+    r = requests.get(f"{BASE_URL}/workspace", headers=_headers())
+    if r.status_code == 200:
+        _workspace_slug = r.json().get("data", {}).get("slug")
+    print(f"  Attio workspace slug: {_workspace_slug}")
 
     # Discover pitch deck URL slug
     r = requests.get(f"{BASE_URL}/objects/companies/attributes", headers=_headers())
