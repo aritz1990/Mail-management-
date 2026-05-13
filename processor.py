@@ -14,6 +14,7 @@ import re
 import json
 import base64
 import pickle
+import urllib.request as _urllib_request
 import urllib.parse
 import email.mime.text
 import email.mime.multipart
@@ -252,6 +253,20 @@ Respond with a JSON object only, no other text:
     return json.loads(text)
 
 
+# ── URL shortener ─────────────────────────────────────────────────────────────
+
+def shorten_url(url: str) -> str:
+    """Shorten a URL via TinyURL. Returns original URL if shortening fails."""
+    try:
+        short = _urllib_request.urlopen(
+            "https://tinyurl.com/api-create.php?url=" + urllib.parse.quote(url, safe=""),
+            timeout=5,
+        ).read().decode()
+        return short if short.startswith("http") else url
+    except Exception:
+        return url
+
+
 # ── Email notifications ────────────────────────────────────────────────────────
 
 def send_notification_email(gmail_service, subject: str, body: str, html_body: str = None):
@@ -352,12 +367,13 @@ def handle_attio(gmail_service, analysis: dict, drive_link: str, email_subject: 
                     "token": confirm_token,
                 })
                 confirm_url = f"{apps_script_url}?{params}"
+                short_confirm = shorten_url(confirm_url)
+                short_attio = shorten_url(attio_record_url)
                 buttons_html += (
-                    f'<p style="margin:8px 0">'
-                    f'<a href="{attio_record_url}" style="color:#1565c0;font-family:sans-serif;margin-right:16px">View: {name}</a>'
-                    f'<a href="{confirm_url}" style="background:#2e7d32;color:white;'
-                    f'padding:10px 20px;text-decoration:none;border-radius:4px;'
-                    f'display:inline-block;font-family:sans-serif">✓ Confirm</a></p>\n'
+                    f'<p style="margin:12px 0;font-family:sans-serif">'
+                    f'<b>{name}</b><br>'
+                    f'View: <a href="{attio_record_url}">{short_attio}</a>&nbsp;&nbsp;'
+                    f'Confirm: <a href="{confirm_url}">{short_confirm}</a></p>\n'
                 )
                 buttons_text += f"\nView '{name}' in Attio: {attio_record_url}\nConfirm: {confirm_url}\n"
 
