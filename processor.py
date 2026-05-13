@@ -458,6 +458,12 @@ def process_emails():
 
         print(f"\n  Email: '{subject}' from {sender}")
 
+        subject_lower = subject.lower()
+        if "screen" in subject_lower or "memo" in subject_lower:
+            print(f"    Skipping — subject contains 'screen' or 'memo'")
+            processed.add(msg_id)
+            continue
+
         parts = msg["payload"].get("parts", [])
         deck_found = False
         for part in parts:
