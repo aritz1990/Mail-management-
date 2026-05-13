@@ -2,77 +2,86 @@
 
 ## What this project does
 
-This automation checks Gmail hourly for emails containing startup funding pitch decks. When it finds one, it:
+This automation runs daily via GitHub Actions and checks Gmail for emails containing startup funding pitch decks. When it finds one, it:
 
-1. Downloads the attachment (PDF or PPTX)
-2. Extracts the text
-3. Asks Claude (Opus 4.6) whether it is genuinely a funding pitch deck
-4. If yes, saves it to a designated Google Drive folder
-5. Renames the file to the company's URL domain (e.g. `sprive.com.pdf`)
-
-## Your role as Claude Code
-
-When the user asks you to work on this project you should be able to:
-
-- **Run the processor manually** — execute `processor.py` to scan Gmail right now
-- **Check processed companies** — read `contacts.md` to see what has already been saved
-- **Re-authenticate** — run `authenticate.py` if the Gmail token expires
-- **Adjust the detection logic** — edit the Claude prompt inside `processor.py` if the user wants stricter or looser pitch deck filtering
-- **Process a specific sender** — modify the Gmail query in `processor.py` to target a specific email address
-- **Rename or reorganise files** — rename files in the Pitch Decks Google Drive folder based on user instruction
-- **Schedule or reschedule** — create or update a Claude Code scheduled task to run `processor.py` on an hourly cron
+1. Scans emails for PDF/PPTX attachments **and** DocSend links (`docsend.com/view/...`)
+2. Downloads the deck (directly for attachments, via docsend2pdf.com API for DocSend links)
+3. Extracts text and asks Claude (Opus 4.6) whether it is a genuine funding pitch deck
+4. If yes, saves it to **two Google Drive folders** simultaneously (ar@angelinvest.ventures and anna.ritz@legata.cc)
+5. Matches the company in **Attio CRM** and updates the Pitch deck URL field
+6. Sends an email notification if the Attio match is ambiguous, with View and Confirm buttons
 
 ## File structure
 
 ```
-pitch-deck-processor/
+Mail-management-/
 ├── CLAUDE.md           ← you are here
-├── README.md           ← human setup guide
 ├── processor.py        ← main automation script
-├── authenticate.py     ← one-time Gmail OAuth helper
-├── contacts.md         ← list of companies already processed
-├── credentials.json    ← Gmail OAuth credentials (user must supply)
-├── token.pickle        ← saved Gmail auth token (auto-created after auth)
-├── processed.json      ← log of processed Gmail message IDs
-└── venv/               ← Python virtual environment
+├── attio.py            ← Attio CRM API client (never deletes data)
+├── authenticate.py     ← one-time Gmail OAuth helper (run from Cloud Shell)
+├── credentials.json    ← Gmail OAuth credentials (not committed)
+├── token.pickle        ← saved Gmail auth token (not committed)
+├── processed.json      ← log of processed Gmail message IDs (not committed, cached by GitHub Actions)
+└── .github/workflows/processor.yml  ← daily GitHub Actions cron
 ```
 
 ## Key configuration (top of processor.py)
 
 | Variable | What to change |
 |---|---|
-| `DRIVE_PITCH_DECKS_FOLDER` | Path to the Google Drive Pitch Decks folder |
+| `DRIVE_FOLDER_IDS` | List of Google Drive folder IDs to save decks into |
+| `NOTIFICATION_EMAIL` | Email address for ambiguous match notifications |
+| `DOCSEND_EMAIL` | Email passed to docsend2pdf.com for access-controlled links |
 | Gmail query in `process_emails()` | To filter by sender, date range, label, etc. |
-| Claude model | Currently `claude-opus-4-6` — change if needed |
+| Claude model in `analyze_deck()` | Currently `claude-opus-4-6` |
 
-## Running the processor
+## GitHub Actions schedule
 
-```bash
-./venv/bin/python3 processor.py
-```
+The processor runs daily at **9am UTC** via `.github/workflows/processor.yml`.
+To trigger a manual run: GitHub → Actions → Pitch Deck Processor → Run workflow.
 
-The `ANTHROPIC_API_KEY` environment variable must be set. Add it to `~/.zshrc` if not already there:
+## GitHub secrets required
 
-```bash
-echo 'export ANTHROPIC_API_KEY="sk-ant-..."' >> ~/.zshrc
-source ~/.zshrc
-```
-
-## Scheduled task
-
-The processor runs hourly via a Claude Code scheduled task. To create or recreate it, ask Claude Code:
-> "Create a scheduled task that runs processor.py every hour"
+| Secret | Purpose |
+|---|---|
+| `ANTHROPIC_API_KEY` | Claude API access |
+| `ATTIO_API_KEY` | Attio CRM API access |
+| `CREDENTIALS_JSON` | Google OAuth credentials JSON |
+| `TOKEN_PICKLE_B64` | Base64-encoded Gmail token (regenerate with authenticate.py) |
+| `APPS_SCRIPT_URL` | Google Apps Script endpoint for Confirm buttons in emails |
+| `CONFIRM_TOKEN` | Secret token validating confirm button clicks |
 
 ## Re-authenticating Gmail
 
-If the token expires, run:
+The token needs to be regenerated if it expires or if OAuth scopes change.
+Run from Google Cloud Shell (shell.cloud.google.com):
 
 ```bash
-./venv/bin/python3 authenticate.py
+cd Mail-management-
+git pull
+OAUTHLIB_INSECURE_TRANSPORT=1 python3 authenticate.py
+base64 -w 0 token.pickle > token_b64.txt
+cloudshell download token_b64.txt
 ```
 
-This will print a URL. Visit it, approve Gmail access, and the browser will redirect to `http://localhost:8888` which the script catches automatically.
+Then update the `TOKEN_PICKLE_B64` GitHub secret with the downloaded file contents.
 
-## Already-processed companies
+Current OAuth scopes: `gmail.readonly`, `gmail.send`, `drive` (full Drive access).
 
-See `contacts.md` for the full list of companies whose pitch decks have already been saved. The processor tracks processed email IDs in `processed.json` to avoid duplicates.
+## Attio integration
+
+- `attio.py` matches companies by: domain → exact name → partial name
+- Single confident match owned by Anna Ritz → updates Pitch deck URL automatically
+- Single match owned by someone else → sends notification email
+- No match → creates a new company record
+- Ambiguous match → sends notification email with View and Confirm buttons per candidate
+- The Confirm button calls a Google Apps Script web app (script.google.com, project: "Attio Confirm")
+
+## Drive folders
+
+| Folder | Owner |
+|---|---|
+| `1bg0NQVwuP82wkIWvXzlJCrs-WHYk12DD` | ar@angelinvest.ventures |
+| `13CKApFKyLmlcl90Sa-xEXMcaqHnkz3tB` | anna.ritz@legata.cc (shared with ar@angelinvest.ventures) |
+
+Files are uploaded to folder 1, then copied to folder 2.
