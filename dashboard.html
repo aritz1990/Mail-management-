@@ -1,0 +1,1348 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio · Anna Ritz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#0f0f0e;--ink-2:#3a3a38;--ink-3:#6b6b68;--ink-4:#a8a8a4;--ink-5:#d4d4cf;
+  --bg:#f7f6f2;--bg-2:#ffffff;--bg-3:#f0efe9;
+  --border:#e4e3dc;--border-2:#c8c7be;
+  --green:#1a5c35;--green-bg:#eaf3ee;
+  --red:#9b2222;--red-bg:#fbecec;
+  --amber:#8a5a00;--amber-bg:#fdf5e6;
+  --blue:#1a3a6b;--blue-bg:#e8eef8;
+  --purple:#4a2070;--purple-bg:#f0eaf8;
+  --merrill:#005a8e;--merrill-bg:#e6f0f7;
+  --consors:#d4000f;--consors-bg:#fce8e9;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);font-size:13px;line-height:1.5;min-height:100vh;}
+
+nav{position:sticky;top:0;z-index:50;background:rgba(247,246,242,0.96);backdrop-filter:blur(8px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:56px;}
+.nav-brand{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:500;color:var(--ink);}
+.nav-brand em{font-style:italic;color:var(--ink-3);}
+.nav-tabs{display:flex;height:100%;}
+.nav-tab{display:flex;align-items:center;padding:0 18px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-4);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;user-select:none;}
+.nav-tab:hover{color:var(--ink-2);}
+.nav-tab.active{color:var(--ink);border-bottom-color:var(--ink);}
+.nav-right{display:flex;align-items:center;gap:12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-4);}
+.refresh-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;background:var(--ink);color:white;border:none;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:opacity .15s;}
+.refresh-btn:hover{opacity:.75;}.refresh-btn:disabled{opacity:.35;cursor:not-allowed;}
+.refresh-btn.spinning svg{animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.page{display:none;}.page.active{display:block;}
+.container{max-width:1280px;margin:0 auto;padding:36px 48px 80px;}
+.section{margin-bottom:48px;}
+.section-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:500;color:var(--ink);letter-spacing:-.2px;}
+.section-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-4);letter-spacing:.5px;margin-top:2px;}
+
+.kpi-grid{display:grid;gap:1px;background:var(--border);border:1px solid var(--border);}
+.kpi-grid-2{grid-template-columns:repeat(2,1fr);}
+.kpi-grid-3{grid-template-columns:repeat(3,1fr);}
+.kpi-grid-4{grid-template-columns:repeat(4,1fr);}
+.kpi-grid-5{grid-template-columns:repeat(5,1fr);}
+.kpi-grid-6{grid-template-columns:repeat(6,1fr);}
+.kpi-cell{background:var(--bg-2);padding:20px 22px;}
+.kpi-cell.accent-green{border-top:3px solid var(--green);}
+.kpi-cell.accent-red{border-top:3px solid var(--red);}
+.kpi-cell.accent-blue{border-top:3px solid var(--blue);}
+.kpi-cell.accent-amber{border-top:3px solid var(--amber);}
+.kpi-cell.accent-purple{border-top:3px solid var(--purple);}
+.kpi-cell.merrill{border-top:3px solid var(--merrill);}
+.kpi-cell.consors{border-top:3px solid var(--consors);}
+.kpi-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-4);margin-bottom:8px;}
+.kpi-value{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:var(--ink);line-height:1;letter-spacing:-.5px;}
+.kpi-value.lg{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:500;letter-spacing:-1px;}
+.kpi-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-4);margin-top:4px;}
+.pos{color:var(--green);}.neg{color:var(--red);}.neu{color:var(--ink-3);}
+.warn{color:var(--amber);}
+
+/* broker sub-row */
+.broker-subrow{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;}
+.broker-cell{background:var(--bg-2);padding:14px 22px;display:flex;align-items:center;gap:12px;}
+.broker-pill{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.8px;text-transform:uppercase;padding:2px 8px;border-radius:2px;white-space:nowrap;font-weight:500;}
+.pill-merrill{background:var(--merrill-bg);color:var(--merrill);}
+.pill-consors{background:var(--consors-bg);color:var(--consors);}
+.broker-vals{display:flex;flex-direction:column;gap:2px;}
+.broker-main{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--ink);}
+.broker-detail{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-4);}
+
+.alloc-wrap{background:var(--bg-2);border:1px solid var(--border);border-top:none;padding:20px 22px;}
+.alloc-bar{height:7px;display:flex;border-radius:1px;overflow:hidden;margin:10px 0;}
+.alloc-seg{height:100%;transition:width .8s cubic-bezier(.4,0,.2,1);}
+.alloc-legend{display:flex;gap:24px;flex-wrap:wrap;}
+.alloc-item{display:flex;align-items:center;gap:7px;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-3);}
+.alloc-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+/* payment breakdown bar */
+.payment-bar-wrap{margin-top:12px;}
+.payment-bar{height:10px;display:flex;border-radius:2px;overflow:hidden;}
+.payment-seg{height:100%;}
+.payment-legend{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;}
+.payment-item{display:flex;align-items:center;gap:6px;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-3);}
+.payment-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+
+/* amortisation table */
+.amort-table-wrap{max-height:360px;overflow-y:auto;border:1px solid var(--border);}
+.amort-table-wrap table{width:100%;border-collapse:collapse;}
+.amort-table-wrap thead th{position:sticky;top:0;z-index:2;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-4);font-weight:400;text-align:right;padding:10px 14px 8px;border-bottom:1px solid var(--border);background:var(--bg-3);}
+.amort-table-wrap thead th:first-child{text-align:left;}
+.amort-table-wrap tbody tr{border-bottom:1px solid var(--border);}
+.amort-table-wrap tbody tr:last-child{border-bottom:none;}
+.amort-table-wrap tbody tr.highlight{background:var(--green-bg);}
+.amort-table-wrap tbody tr.fixend{background:var(--amber-bg);}
+.amort-table-wrap tbody td{padding:9px 14px;text-align:right;font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);white-space:nowrap;}
+.amort-table-wrap tbody td:first-child{text-align:left;}
+
+/* LTV progress */
+.ltv-track{height:12px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:8px;}
+.ltv-fill{height:100%;border-radius:2px;transition:width .6s ease;}
+
+.card{background:var(--bg-2);border:1px solid var(--border);overflow:hidden;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-4);font-weight:400;text-align:right;padding:12px 16px 10px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--bg-3);}
+thead th:first-child{text-align:left;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--bg-3);}
+tbody td{padding:12px 16px;text-align:right;font-family:'DM Mono',monospace;font-size:12px;color:var(--ink);white-space:nowrap;vertical-align:middle;}
+tbody td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-weight:500;font-size:13px;}
+tfoot td{padding:12px 16px;text-align:right;font-family:'DM Mono',monospace;font-size:12px;font-weight:500;border-top:1px solid var(--border-2);background:var(--bg-3);color:var(--ink);white-space:nowrap;}
+tfoot td:first-child{text-align:left;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-3);}
+.broker-header-row td{background:var(--bg-3);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-4);padding:7px 16px;border-bottom:1px solid var(--border);text-align:left !important;font-weight:400;}
+
+.tag{display:inline-block;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.5px;padding:2px 7px;border-radius:2px;font-weight:500;}
+.tg{background:var(--green-bg);color:var(--green);}
+.tr{background:var(--red-bg);color:var(--red);}
+.ta{background:var(--amber-bg);color:var(--amber);}
+.tb{background:var(--blue-bg);color:var(--blue);}
+.tp{background:var(--purple-bg);color:var(--purple);}
+.tgr{background:var(--bg-3);color:var(--ink-3);border:1px solid var(--border);}
+.tm{background:var(--merrill-bg);color:var(--merrill);}
+.tc{background:var(--consors-bg);color:var(--consors);}
+
+.editable{cursor:pointer;border-bottom:1px dashed var(--border-2);padding-bottom:1px;}
+.editable:hover{border-color:var(--ink-3);}
+input.ci{background:transparent;border:none;border-bottom:1px solid var(--ink);font-family:'DM Mono',monospace;font-size:12px;color:var(--ink);width:90px;outline:none;padding:0;text-align:right;}
+
+.add-row{display:flex;align-items:center;gap:6px;padding:11px 16px;background:none;border:none;border-top:1px dashed var(--border);width:100%;cursor:pointer;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-4);letter-spacing:.5px;transition:color .15s,background .15s;}
+.add-row:hover{color:var(--ink-3);background:var(--bg-3);}
+
+.sync-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--blue);color:white;border:none;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:opacity .15s;white-space:nowrap;}
+.sync-btn:hover{opacity:.8;}.sync-btn:disabled{opacity:.35;cursor:not-allowed;}
+.sync-btn.spinning svg{animation:spin .7s linear infinite;}
+.update-card{background:var(--bg-2);border:1px solid var(--border);overflow:hidden;transition:opacity .3s;}
+.update-card-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg-3);}
+.update-card-company{font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;color:var(--ink);}
+.update-card-meta{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-4);margin-top:2px;letter-spacing:.5px;}
+.update-card-body{padding:16px 18px;display:grid;grid-template-columns:1fr 220px;gap:20px;align-items:start;}
+.update-signal{font-family:'DM Sans',sans-serif;font-size:13px;color:var(--ink-2);line-height:1.6;}
+.update-signal strong{color:var(--ink);font-weight:600;}
+.update-reasoning{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-4);margin-top:8px;line-height:1.5;font-style:italic;padding-top:8px;border-top:1px solid var(--border);}
+.markup-proposal{background:var(--bg-3);border:1px solid var(--border);padding:12px 14px;margin-bottom:8px;}
+.markup-proposal-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-4);margin-bottom:5px;}
+.markup-proposal-range{font-family:'DM Mono',monospace;font-size:15px;font-weight:500;color:var(--ink);}
+.markup-proposal-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-4);margin-top:3px;}
+.markup-btn-row{display:flex;gap:6px;margin-top:6px;}
+.markup-btn{flex:1;padding:6px 8px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.8px;text-transform:uppercase;border:1px solid var(--border);background:var(--bg-2);cursor:pointer;border-radius:2px;transition:all .15s;color:var(--ink-3);}
+.markup-btn:hover{background:var(--bg-3);color:var(--ink);}
+.markup-btn.accept{background:var(--green-bg);border-color:var(--green);color:var(--green);}
+.markup-btn.accept:hover{background:var(--green);color:white;}
+.markup-btn.dismiss{color:var(--ink-4);}
+.markup-btn.dismiss:hover{background:var(--bg-3);}
+.sig-growth{background:var(--green-bg);color:var(--green);display:inline-block;font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:2px;font-weight:500;}
+.sig-risk{background:var(--red-bg);color:var(--red);display:inline-block;font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:2px;font-weight:500;}
+.sig-neutral{background:var(--amber-bg);color:var(--amber);display:inline-block;font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:2px;font-weight:500;}
+.sig-round{background:var(--blue-bg);color:var(--blue);display:inline-block;font-family:'DM Mono',monospace;font-size:9px;padding:2px 7px;border-radius:2px;font-weight:500;}
+.update-card.applied{border-left:3px solid var(--green);}
+.update-card.dismissed{opacity:.4;}
+input.markup-input{background:var(--bg-2);border:1px solid var(--border-2);font-family:'DM Mono',monospace;font-size:13px;color:var(--ink);width:100%;outline:none;padding:6px 8px;border-radius:2px;}
+@media(max-width:900px){.update-card-body{grid-template-columns:1fr;}}
+
+.health-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+.health-card{background:var(--bg-2);border:1px solid var(--border);padding:18px 20px;}
+.hbar-bg{background:var(--border);height:3px;border-radius:1px;margin-top:10px;}
+.hbar-fill{height:3px;border-radius:1px;transition:width .6s ease;}
+.pme-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.pme-card{background:var(--bg-2);border:1px solid var(--border);padding:22px;}
+.pme-title{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink-4);margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--border);}
+.pme-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-family:'DM Mono',monospace;font-size:12px;}
+.pme-row:last-child{border-bottom:none;}
+.pme-lbl{color:var(--ink-3);font-size:11px;}
+
+.info-row{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:1px;}
+.info-cell{background:var(--bg-2);padding:14px 18px;}
+.info-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-4);margin-bottom:4px;}
+.info-val{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;color:var(--ink);}
+
+.toast{position:fixed;bottom:24px;right:24px;background:var(--ink);color:white;padding:10px 16px;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.5px;border-radius:2px;opacity:0;transform:translateY(6px);transition:opacity .2s,transform .2s;z-index:200;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+.page.active .section{animation:fadeUp .35s ease both;}
+.page.active .section:nth-child(1){animation-delay:.02s}
+.page.active .section:nth-child(2){animation-delay:.07s}
+.page.active .section:nth-child(3){animation-delay:.12s}
+.page.active .section:nth-child(4){animation-delay:.17s}
+.page.active .section:nth-child(5){animation-delay:.22s}
+.page.active .section:nth-child(6){animation-delay:.27s}
+
+@media(max-width:900px){
+nav{padding:0 20px}.container{padding:24px 20px 60px}
+.kpi-grid-4,.kpi-grid-5,.kpi-grid-6{grid-template-columns:repeat(2,1fr)}
+.kpi-grid-3{grid-template-columns:repeat(2,1fr)}
+.health-grid{grid-template-columns:repeat(2,1fr)}.pme-grid{grid-template-columns:1fr}
+.broker-subrow{grid-template-columns:1fr}.nav-tab{padding:0 10px;font-size:9px}
+.info-row{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">Portfolio <em>/ Anna Ritz</em></div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showPage('overview')">Overview</div>
+    <div class="nav-tab" onclick="showPage('venture')">Venture</div>
+    <div class="nav-tab" onclick="showPage('public')">Public</div>
+    <div class="nav-tab" onclick="showPage('property')">Property</div>
+  </div>
+  <div class="nav-right">
+    <span id="nav-date"></span>
+    <button class="refresh-btn" id="refresh-btn" onclick="refreshPrices()">
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+      </svg>
+      Refresh
+    </button>
+  </div>
+</nav>
+
+<!-- ══ OVERVIEW ══ -->
+
+<div class="page active" id="page-overview"><div class="container">
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Net Worth</div><div class="section-sub" id="last-upd">—</div></div></div>
+    <div class="kpi-grid kpi-grid-4" style="margin-bottom:1px">
+      <div class="kpi-cell"><div class="kpi-label">Total Net Worth</div><div class="kpi-value lg" id="ov-total">—</div><div class="kpi-sub" id="ov-gain">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Public Equities</div><div class="kpi-value" id="ov-stocks">—</div><div class="kpi-sub" id="ov-stocks-pct">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Venture / Private</div><div class="kpi-value" id="ov-vc">—</div><div class="kpi-sub" id="ov-vc-pct">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Property Equity</div><div class="kpi-value" id="ov-prop">—</div><div class="kpi-sub" id="ov-prop-pct">—</div></div>
+    </div>
+    <div class="broker-subrow">
+      <div class="broker-cell">
+        <div class="broker-pill pill-consors">Consorsbank</div>
+        <div class="broker-vals"><div class="broker-main" id="ov-consors-val">—</div><div class="broker-detail" id="ov-consors-detail">—</div></div>
+      </div>
+      <div class="broker-cell">
+        <div class="broker-pill pill-merrill">Merrill Lynch</div>
+        <div class="broker-vals"><div class="broker-main" id="ov-merrill-val">—</div><div class="broker-detail" id="ov-merrill-detail">—</div></div>
+      </div>
+    </div>
+    <div class="alloc-wrap"><div class="kpi-label">Asset Allocation</div><div class="alloc-bar" id="alloc-bar"></div><div class="alloc-legend" id="alloc-legend"></div></div>
+  </div>
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Venture Returns</div><div class="section-sub">Portfolio-level · unrealised at last mark</div></div></div>
+    <div class="kpi-grid kpi-grid-6" style="margin-bottom:1px">
+      <div class="kpi-cell"><div class="kpi-label">TVPI</div><div class="kpi-value" id="ov-tvpi">—</div><div class="kpi-sub">Total value / paid-in</div></div>
+      <div class="kpi-cell"><div class="kpi-label">DPI</div><div class="kpi-value" id="ov-dpi">—</div><div class="kpi-sub">Realized distributions</div></div>
+      <div class="kpi-cell"><div class="kpi-label">RVPI</div><div class="kpi-value" id="ov-rvpi">—</div><div class="kpi-sub">Unrealised residual</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Gross IRR</div><div class="kpi-value" id="ov-irr">—</div><div class="kpi-sub">Since first investment</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Deployed Capital</div><div class="kpi-value" id="ov-deployed">—</div><div class="kpi-sub" id="ov-reserve">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Deployment Pace</div><div class="kpi-value" id="ov-pace">—</div><div class="kpi-sub">per year avg</div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Public Equities Summary</div><div class="section-sub">Consorsbank + Merrill Lynch combined</div></div></div>
+    <div class="kpi-grid kpi-grid-4">
+      <div class="kpi-cell"><div class="kpi-label">Combined Market Value</div><div class="kpi-value" id="ov-smv">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Total Invested</div><div class="kpi-value" id="ov-sinv">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Unrealised P&amp;L</div><div class="kpi-value" id="ov-spnl">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Blended Return</div><div class="kpi-value" id="ov-sret">—</div></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- ══ VENTURE ══ -->
+
+<div class="page" id="page-venture"><div class="container">
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Portfolio Returns</div><div class="section-sub">All positions · MOIC &amp; IRR at last mark</div></div></div>
+    <div class="kpi-grid kpi-grid-5" style="margin-bottom:1px">
+      <div class="kpi-cell"><div class="kpi-label">TVPI</div><div class="kpi-value lg" id="vc-tvpi">—</div><div class="kpi-sub">Total value / paid-in capital</div></div>
+      <div class="kpi-cell"><div class="kpi-label">DPI</div><div class="kpi-value" id="vc-dpi">—</div><div class="kpi-sub">Distributions / paid-in</div></div>
+      <div class="kpi-cell"><div class="kpi-label">RVPI</div><div class="kpi-value" id="vc-rvpi">—</div><div class="kpi-sub">Residual value / paid-in</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Gross IRR</div><div class="kpi-value" id="vc-irr">—</div><div class="kpi-sub">Since first investment</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Total Invested</div><div class="kpi-value" id="vc-inv">—</div><div class="kpi-sub" id="vc-res-lbl">—</div></div>
+    </div>
+    <div class="kpi-grid kpi-grid-5">
+      <div class="kpi-cell"><div class="kpi-label">Portfolio MOIC</div><div class="kpi-value" id="vc-moic">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Median MOIC</div><div class="kpi-value" id="vc-med-moic">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Avg MOIC</div><div class="kpi-value" id="vc-avg-moic">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Median IRR</div><div class="kpi-value" id="vc-med-irr">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Avg IRR</div><div class="kpi-value" id="vc-avg-irr">—</div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Portfolio Health</div></div></div>
+    <div class="health-grid" id="health-grid"></div>
+  </div>
+  <div class="section">
+    <div class="section-header">
+      <div><div class="section-title">Portfolio Intelligence</div><div class="section-sub">AI-read investor updates · proposed markups for your review</div></div>
+      <button class="sync-btn" id="sync-btn" onclick="syncPortfolioUpdates()">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+        </svg>
+        Sync Portfolio Updates
+      </button>
+    </div>
+    <div id="sync-status" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-4);margin-bottom:16px;display:none"></div>
+    <div id="update-cards" style="display:flex;flex-direction:column;gap:12px"></div>
+  </div>
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Positions</div><div class="section-sub">Click any value to edit · Narrative markup = AI-proposed · Round markup = closed funding round</div></div></div>
+    <div class="card">
+      <div class="table-wrap">
+        <table><thead><tr>
+          <th style="text-align:left">Company</th><th>Stage</th><th>Vintage</th><th>Invested</th><th>CCY</th>
+          <th>Ownership</th><th>Last Val.</th><th>Implied Val.</th><th>Markup</th><th>Narrative Mkp</th><th>Round Mkp</th><th>MOIC</th><th>IRR</th><th>Realized</th><th>Status</th>
+        </tr></thead><tbody id="vc-tbody"></tbody><tfoot id="vc-tfoot"></tfoot></table>
+      </div>
+      <button class="add-row" onclick="addVCRow()"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add investment</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Vintage Cohort Analysis</div></div></div>
+    <div class="card"><div class="table-wrap"><table>
+      <thead><tr><th style="text-align:left">Vintage</th><th>Companies</th><th>Invested</th><th>Implied Value</th><th>MOIC</th><th>IRR</th><th>Write-offs</th><th>Graduated</th></tr></thead>
+      <tbody id="vintage-tbody"></tbody>
+    </table></div></div>
+  </div>
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Public Market Equivalent</div><div class="section-sub">Venture IRR vs. benchmarks</div></div></div>
+    <div class="pme-grid" id="pme-grid"></div>
+  </div>
+</div></div>
+
+<!-- ══ PUBLIC ══ -->
+
+<div class="page" id="page-public"><div class="container">
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Public Equities</div><div class="section-sub">Consorsbank · Depot 878707346 &amp; Merrill Lynch · Acct 8ZR-26067</div></div></div>
+    <div class="kpi-grid kpi-grid-4" style="margin-bottom:1px">
+      <div class="kpi-cell"><div class="kpi-label">Combined Value</div><div class="kpi-value lg" id="pub-mv">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Total Invested</div><div class="kpi-value" id="pub-inv">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Unrealised P&amp;L</div><div class="kpi-value" id="pub-pnl">—</div></div>
+      <div class="kpi-cell"><div class="kpi-label">Blended Return</div><div class="kpi-value" id="pub-ret">—</div></div>
+    </div>
+    <div class="kpi-grid kpi-grid-2" style="margin-bottom:16px">
+      <div class="kpi-cell consors"><div class="kpi-label">Consorsbank · Depot 878707346</div><div class="kpi-value" id="pub-consors-mv">—</div><div class="kpi-sub" id="pub-consors-pnl">—</div><div class="kpi-sub" id="pub-consors-ret">—</div></div>
+      <div class="kpi-cell merrill"><div class="kpi-label">Merrill Lynch · Acct 8ZR-26067</div><div class="kpi-value" id="pub-merrill-mv">—</div><div class="kpi-sub" id="pub-merrill-usd">—</div><div class="kpi-sub" id="pub-merrill-pnl">—</div></div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table><thead><tr>
+          <th style="text-align:left">Name</th><th>Broker</th><th>Type</th><th>Units</th>
+          <th>Cost/Unit</th><th>Price</th><th>CCY</th><th>Invested (€)</th><th>Value (€)</th>
+          <th>P&amp;L Today</th><th>Total P&amp;L (€)</th><th>Return</th>
+        </tr></thead><tbody id="stocks-tbody"></tbody><tfoot id="stocks-tfoot"></tfoot></table>
+      </div>
+      <button class="add-row" onclick="addStockRow()"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add position</button>
+    </div>
+  </div>
+</div></div>
+
+<!-- ══ PROPERTY ══ -->
+
+<div class="page" id="page-property"><div class="container">
+
+  <!-- Property header info -->
+
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Maybachufer 24, Berlin</div><div class="section-sub">Eigentumswohnung · 49 m² · Kreissparkasse Biberach · Vorgangsnummer 7251784</div></div></div>
+
+    <!-- Fact strip -->
+    <div class="info-row" style="margin-bottom:1px">
+      <div class="info-cell"><div class="info-label">Purchase Price</div><div class="info-val">€361,000</div></div>
+      <div class="info-cell"><div class="info-label">Total Acquisition Cost</div><div class="info-val">€389,880</div></div>
+      <div class="info-cell"><div class="info-label">Own Funds Contributed</div><div class="info-val">€28,880</div></div>
+      <div class="info-cell"><div class="info-label">Loan Amount</div><div class="info-val">€361,000</div></div>
+      <div class="info-cell"><div class="info-label">Interest Rate (fixed)</div><div class="info-val">4.32% p.a.</div></div>
+      <div class="info-cell"><div class="info-label">Fixed Until</div><div class="info-val">29.02.2036</div></div>
+      <div class="info-cell"><div class="info-label">Monthly Payment</div><div class="info-val">€1,750.85</div></div>
+      <div class="info-cell"><div class="info-label">Sondertilgung / yr</div><div class="info-val">€18,050</div></div>
+      <div class="info-cell"><div class="info-label">Loan Start</div><div class="info-val">01.06.2026</div></div>
+    </div>
+
+    <!-- Equity & Value KPIs -->
+    <div class="kpi-grid kpi-grid-4" style="margin-bottom:1px">
+      <div class="kpi-cell accent-green">
+        <div class="kpi-label">Current Equity</div>
+        <div class="kpi-value lg" id="pr-equity">—</div>
+        <div class="kpi-sub" id="pr-equity-pct">—</div>
+      </div>
+      <div class="kpi-cell accent-blue">
+        <div class="kpi-label">Current Value (est.)</div>
+        <div class="kpi-value" id="pr-value">—</div>
+        <div class="kpi-sub" id="pr-apprc">—</div>
+      </div>
+      <div class="kpi-cell accent-red">
+        <div class="kpi-label">Outstanding Mortgage</div>
+        <div class="kpi-value" id="pr-balance">—</div>
+        <div class="kpi-sub" id="pr-balance-sub">—</div>
+      </div>
+      <div class="kpi-cell accent-amber">
+        <div class="kpi-label">LTV</div>
+        <div class="kpi-value" id="pr-ltv">—</div>
+        <div class="kpi-sub" id="pr-ltv-sub">—</div>
+      </div>
+    </div>
+
+    <!-- Payments made -->
+    <div class="kpi-grid kpi-grid-4" style="margin-bottom:1px">
+      <div class="kpi-cell accent-blue">
+        <div class="kpi-label">Total Paid to Date</div>
+        <div class="kpi-value" id="pr-total-paid">—</div>
+        <div class="kpi-sub" id="pr-months-paid">—</div>
+      </div>
+      <div class="kpi-cell accent-green">
+        <div class="kpi-label">Principal Repaid</div>
+        <div class="kpi-value" id="pr-principal-paid">—</div>
+        <div class="kpi-sub" id="pr-principal-pct">—</div>
+      </div>
+      <div class="kpi-cell accent-red">
+        <div class="kpi-label">Interest Paid</div>
+        <div class="kpi-value" id="pr-interest-paid">—</div>
+        <div class="kpi-sub" id="pr-interest-pct">—</div>
+      </div>
+      <div class="kpi-cell accent-purple">
+        <div class="kpi-label">Total Interest (lifetime)</div>
+        <div class="kpi-value" id="pr-total-interest">—</div>
+        <div class="kpi-sub" id="pr-interest-remaining">—</div>
+      </div>
+    </div>
+
+    <!-- Interest vs Principal bar -->
+    <div class="kpi-grid kpi-grid-2" style="margin-bottom:1px">
+      <div class="kpi-cell">
+        <div class="kpi-label">Monthly Payment Breakdown (current month)</div>
+        <div id="payment-bar-container"></div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">LTV Trajectory</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-4);margin-bottom:6px">Now → Fixed Rate End (2036) → Full Repayment (2056)</div>
+        <div id="ltv-track-container"></div>
+      </div>
+    </div>
+
+    <!-- Return & Risk KPIs -->
+    <div class="kpi-grid kpi-grid-5" style="margin-bottom:1px">
+      <div class="kpi-cell">
+        <div class="kpi-label">Return on Equity (ROE)</div>
+        <div class="kpi-value" id="pr-roe">—</div>
+        <div class="kpi-sub">Annual appreciation / equity</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">Total Return Since Buy</div>
+        <div class="kpi-value" id="pr-total-return">—</div>
+        <div class="kpi-sub">Appreciation + principal built</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">Debt Service Ratio</div>
+        <div class="kpi-value" id="pr-dsr">—</div>
+        <div class="kpi-sub" id="pr-dsr-sub">vs. monthly income</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">Remaining Term</div>
+        <div class="kpi-value" id="pr-term">—</div>
+        <div class="kpi-sub" id="pr-fixend">Fixed rate ends 02/2036</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">Refinancing Signal</div>
+        <div class="kpi-value" id="pr-refi">—</div>
+        <div class="kpi-sub" id="pr-refi-sub">—</div>
+      </div>
+    </div>
+
+    <!-- Estimated value editor -->
+    <div class="kpi-grid kpi-grid-3" style="margin-bottom:16px">
+      <div class="kpi-cell">
+        <div class="kpi-label">Est. Current Value <span style="color:var(--ink-4);font-size:8px">(click to edit)</span></div>
+        <div class="kpi-value editable" id="pr-edit-value" onclick="editPropValue()">—</div>
+        <div class="kpi-sub">Update to recalculate all metrics</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">Monthly Net Income (CHF) · for DSR</div>
+        <div class="kpi-value editable" id="pr-edit-income" onclick="editPropIncome()">—</div>
+        <div class="kpi-sub" id="pr-income-eur-sub">—</div>
+      </div>
+      <div class="kpi-cell">
+        <div class="kpi-label">Sondertilgung Used This Year</div>
+        <div class="kpi-value editable" id="pr-edit-sonder" onclick="editSonder()">—</div>
+        <div class="kpi-sub">Max €18,050 / year</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Amortisation schedule -->
+
+  <div class="section">
+    <div class="section-header"><div><div class="section-title">Amortisation Schedule</div><div class="section-sub">Annual view · <span style="background:var(--green-bg);color:var(--green);padding:1px 5px;border-radius:2px">green = current year</span> · <span style="background:var(--amber-bg);color:var(--amber);padding:1px 5px;border-radius:2px">amber = fixed rate end</span></div></div></div>
+    <div class="amort-table-wrap">
+      <table>
+        <thead><tr>
+          <th style="text-align:left">Year</th>
+          <th>Opening Balance</th><th>Annual Payment</th>
+          <th>Interest</th><th>Principal</th>
+          <th>Cumul. Interest</th><th>Cumul. Principal</th>
+          <th>Closing Balance</th><th>LTV</th><th>Equity</th>
+        </tr></thead>
+        <tbody id="amort-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══ MORTGAGE CONSTANTS (from Kreissparkasse contract 7251784) ══
+const MTG = {
+  amount:       361000.00,
+  rateAnnual:   0.04320,        // 4.320% Sollzinssatz
+  effectiveRate:0.0466,
+  initRepayPct: 0.0150,         // 1.50% initial Tilgungssatz
+  monthlyPayment:1750.85,
+  startDate:    new Date(2026,5,1), // First payment June 2026
+  fixedUntil:   new Date(2036,1,29), // 29.02.2036
+  endDate:      new Date(2056,1,29), // 29.02.2056
+  residualAtFix:294112.30,
+  sonderMax:    18050.00,
+  purchasePrice:361000.00,
+  totalCost:    389880.00,
+  ownFunds:     28880.00,
+};
+
+// User-editable property values
+let propState = {
+  currentValue: 365000,
+  monthlyIncomeCHF: 10000,  // CHF — converted to EUR for DSR
+  sonderUsed:   0,
+};
+
+// ══ AMORTISATION ENGINE ══
+function buildAmortSchedule(extraAnnual = 0) {
+  const monthlyRate = MTG.rateAnnual / 12;
+  const schedule = [];
+  let balance = MTG.amount;
+  let cumulInterest = 0;
+  let cumulPrincipal = 0;
+  const startYear = MTG.startDate.getFullYear();
+  const endYear   = MTG.endDate.getFullYear();
+
+  for (let yr = startYear; yr <= endYear; yr++) {
+    const monthsThisYear = yr === startYear ? 7 : 12; // first payment June, so 7 months in 2026 (Jun–Dec)
+    let yearInterest = 0, yearPrincipal = 0;
+    const openBalance = balance;
+
+    for (let m = 0; m < monthsThisYear; m++) {
+      if (balance <= 0) break;
+      const intCharge = balance * monthlyRate;
+      const principalPay = Math.min(MTG.monthlyPayment - intCharge, balance);
+      yearInterest  += intCharge;
+      yearPrincipal += principalPay;
+      balance -= principalPay;
+    }
+    // Sondertilgung applied once per year
+    if (yr === startYear && extraAnnual > 0) {
+      const sonder = Math.min(extraAnnual, balance);
+      yearPrincipal += sonder;
+      balance -= sonder;
+    }
+    cumulInterest  += yearInterest;
+    cumulPrincipal += yearPrincipal;
+
+    schedule.push({
+      year: yr,
+      openBalance,
+      annualPayment: yearInterest + yearPrincipal,
+      interest:  yearInterest,
+      principal: yearPrincipal,
+      cumulInterest,
+      cumulPrincipal,
+      closeBalance: Math.max(balance, 0),
+      isFixEnd: yr === MTG.fixedUntil.getFullYear(),
+      isCurrent: yr === new Date().getFullYear(),
+    });
+
+    if (balance <= 0) break;
+  }
+  return schedule;
+}
+
+// ══ CURRENT BALANCE CALCULATION ══
+function currentBalance() {
+  const now = new Date();
+  const monthsElapsed = Math.max(0,
+    (now.getFullYear() - MTG.startDate.getFullYear()) * 12 +
+    (now.getMonth() - MTG.startDate.getMonth())
+  );
+  const monthlyRate = MTG.rateAnnual / 12;
+  let bal = MTG.amount;
+  let cumulInt = 0, cumulPrin = 0;
+  for (let i = 0; i < monthsElapsed; i++) {
+    const intCharge = bal * monthlyRate;
+    const prin = Math.min(MTG.monthlyPayment - intCharge, bal);
+    cumulInt  += intCharge;
+    cumulPrin += prin;
+    bal -= prin;
+  }
+  // Add Sondertilgung used this year
+  const sonder = Math.min(propState.sonderUsed, MTG.sonderMax);
+  bal = Math.max(bal - sonder, 0);
+  cumulPrin += sonder;
+
+  return { balance: bal, cumulInt, cumulPrin, monthsElapsed,
+    totalPaid: monthsElapsed * MTG.monthlyPayment + sonder };
+}
+
+// Monthly split for current month
+function currentMonthSplit() {
+  const { balance } = currentBalance();
+  const monthlyRate = MTG.rateAnnual / 12;
+  const intCharge = balance * monthlyRate;
+  const prin = MTG.monthlyPayment - intCharge;
+  return { interest: intCharge, principal: prin };
+}
+
+// Total lifetime interest
+function lifetimeInterest() {
+  const sched = buildAmortSchedule();
+  return sched.reduce((s, r) => s + r.interest, 0);
+}
+
+// ══ FX & STOCK DATA ══
+// ══ FX RATES ══
+let USD_EUR = 0.921;
+let GBP_EUR = 1.172;  // fallback
+let CHF_EUR = 0.106;  // fallback — note CHF 10k ≈ EUR 9,400
+
+async function fetchFX(){
+  const pairs = [
+    {sym:'USDEUR=X', set: r=>{ USD_EUR=r; }},
+    {sym:'GBPEUR=X', set: r=>{ GBP_EUR=r; }},
+    {sym:'CHFEUR=X', set: r=>{ CHF_EUR=r; }},
+  ];
+  await Promise.all(pairs.map(async p=>{
+    try{
+      const url=`https://query1.finance.yahoo.com/v8/finance/chart/${p.sym}?interval=1d&range=1d`;
+      const res=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+      const j=await res.json();const d=JSON.parse(j.contents);
+      const m=d?.chart?.result?.[0]?.meta;
+      const rate=m?.regularMarketPrice??m?.previousClose??null;
+      if(rate&&rate>0) p.set(rate);
+    }catch{}
+  }));
+}
+
+let stocks = [
+  {name:'ACM Research Cl.A',     wkn:'A2H62F',type:'Aktie',broker:'consors',currency:'EUR',units:60, cost:24.325833,price:55.30, todayPnL:96.00},
+  {name:'Advanced Micro Devices',wkn:'863186', type:'Aktie',broker:'consors',currency:'EUR',units:10, cost:100.40,   price:380.45,todayPnL:-13.50},
+  {name:'Airbus SE',             wkn:'938914', type:'Aktie',broker:'consors',currency:'EUR',units:80, cost:77.946125,price:173.72,todayPnL:3.20},
+  {name:'Intuitive Surgical',    wkn:'888024', type:'Aktie',broker:'consors',currency:'EUR',units:11, cost:257.991818,price:369.20,todayPnL:16.50},
+  {name:'Invesco NASDAQ Fintech',wkn:'A2DHWJ', type:'ETF',  broker:'consors',currency:'EUR',units:5,  cost:25.356,   price:43.775,todayPnL:-2.70},
+  {name:'iShares S&P500 IT Sect.',wkn:'A142N1',type:'ETF',  broker:'consors',currency:'EUR',units:5,  cost:7.458,    price:41.775,todayPnL:2.50},
+  {name:'Linde PLC',             wkn:'A3D7VW', type:'Aktie',broker:'consors',currency:'EUR',units:5,  cost:273.15,   price:438.40,todayPnL:46.00},
+  {name:'MSCI Inc. A',           wkn:'A0M63R', type:'Aktie',broker:'consors',currency:'EUR',units:14, cost:145.145,  price:487.40,todayPnL:-110.60},
+  {name:'Tesla Inc.',            wkn:'A1CX3T', type:'Aktie',broker:'consors',currency:'EUR',units:5,  cost:276.066,  price:380.35,todayPnL:56.00},
+  {name:'Visa Inc. Class A',     wkn:'V',      type:'Aktie',broker:'merrill', currency:'USD',units:164,cost:216.66,  price:320.14,todayPnL:null},
+];
+const TICKER_MAP={'A2H62F':'ACMR','863186':'AMD','938914':'AIR.DE','888024':'ISRG','A2DHWJ':'KFTK.L','A142N1':'IUIT.L','A3D7VW':'LIN','A0M63R':'MSCI','A1CX3T':'TSLA','V':'V'};
+
+// VC positions — invested amounts stored in original currency, converted to EUR for calculations
+// currency: 'EUR' | 'GBP'
+let vc = [
+  {company:'Malao',        stage:'Pre-Seed',vintage:2023,investedOrig:15000, currency:'EUR',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Zeit.ai',      stage:'Pre-Seed',vintage:2023,investedOrig:10000, currency:'EUR',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Prometheux',   stage:'Pre-Seed',vintage:2023,investedOrig:10000, currency:'GBP',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Incredible',   stage:'Pre-Seed',vintage:2023,investedOrig:10000, currency:'GBP',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Burbank',      stage:'Pre-Seed',vintage:2023,investedOrig:20000, currency:'GBP',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Cranium',      stage:'Pre-Seed',vintage:2023,investedOrig:20000, currency:'GBP',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Ledger Rocket',stage:'Pre-Seed',vintage:2023,investedOrig:10000, currency:'GBP',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Paypercut',    stage:'Pre-Seed',vintage:2023,investedOrig:10000, currency:'EUR',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Divtax',       stage:'Pre-Seed',vintage:2023,investedOrig:5000,  currency:'EUR',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Herita',       stage:'Pre-Seed',vintage:2023,investedOrig:5000,  currency:'EUR',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Synthera',     stage:'Pre-Seed',vintage:2025,investedOrig:0,     currency:'EUR',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,future:true,narrativeMarkup:null,roundMarkup:null},
+  {company:'Claid',        stage:'Pre-Seed',vintage:2025,investedOrig:0,     currency:'EUR',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,future:true,narrativeMarkup:null,roundMarkup:null},
+  {company:'Xventum',      stage:'Pre-Seed',vintage:2022,investedOrig:20000, currency:'EUR',ownership:0,lastVal:0,realized:0,writeoff:true, graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'MVPR',         stage:'Pre-Seed',vintage:2023,investedOrig:10000, currency:'GBP',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'CHANCE',       stage:'Pre-Seed',vintage:2024,investedOrig:20000, currency:'EUR',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Condukt',      stage:'Pre-Seed',vintage:2024,investedOrig:5000,  currency:'EUR',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Artifact.ai',  stage:'Pre-Seed',vintage:2024,investedOrig:5000,  currency:'GBP',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+  {company:'Naro',         stage:'Pre-Seed',vintage:2024,investedOrig:20000, currency:'EUR',ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false,narrativeMarkup:null,roundMarkup:null},
+];
+const RESERVE_BUDGET=300000;
+
+// ══ HELPERS ══
+const fEUR  = v=>v==null||isNaN(v)?'—':new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(v);
+const fEUR2 = v=>v==null||isNaN(v)?'—':new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
+const fUSD  = v=>v==null||isNaN(v)?'—':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format(v);
+const fUSD2 = v=>v==null||isNaN(v)?'—':new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
+const fPct  = v=>v==null||isNaN(v)?'—':(v>=0?'+':'')+v.toFixed(2)+'%';
+const fPct1 = v=>v==null||isNaN(v)?'—':(v>=0?'+':'')+v.toFixed(1)+'%';
+const fX    = v=>v==null||isNaN(v)?'—':v.toFixed(2)+'x';
+const fNum  = v=>v==null||isNaN(v)?'—':new Intl.NumberFormat('de-DE').format(v);
+const cc    = v=>v>0?'pos':v<0?'neg':'neu';
+const tagM  = v=>v>=2?'tg':v>=1?'ta':'tr';
+const tagR  = v=>v>=0?'tg':'tr';
+const median= a=>{if(!a.length)return null;const s=[...a].sort((x,y)=>x-y);const m=Math.floor(s.length/2);return s.length%2?s[m]:(s[m-1]+s[m])/2;};
+const mean  = a=>a.length?a.reduce((s,v)=>s+v,0)/a.length:null;
+const irrC  = (inv,val,yrs)=>{if(yrs<=0||inv<=0||val<=0)return null;return(Math.pow(val/inv,1/yrs)-1)*100;};
+const vcImpl= v=>{ if(v.writeoff||v.future) return 0; if(v.ownership<=0||v.lastVal<=0) return vcInvEUR(v); return (v.ownership/100)*v.lastVal; };
+const vcMoic= v=>{ const inv=vcInvEUR(v); if(inv<=0) return null; const iv=vcImpl(v); return(iv+v.realized)/inv; };
+const vcIrr = v=>{ const inv=vcInvEUR(v); if(inv<=0) return null; const yrs=new Date().getFullYear()-v.vintage; return irrC(inv,vcImpl(v)+v.realized,yrs); };
+const $     = id=>document.getElementById(id);
+const toEUR = (p,ccy)=>{ if(ccy==='USD') return p*USD_EUR; if(ccy==='GBP') return p*GBP_EUR; if(ccy==='CHF') return p*CHF_EUR; return p; };
+const sInvEUR=s=>s.units*toEUR(s.cost,s.currency);
+const sMvEUR =s=>s.units*toEUR(s.price,s.currency);
+// VC helpers — investedOrig in original currency → EUR
+const vcInvEUR = v => toEUR(v.investedOrig, v.currency||'EUR');
+const vcLastValEUR = v => v.lastVal; // valuations always stored in EUR
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  $('page-'+id).classList.add('active');
+  const idx={overview:0,venture:1,public:2,property:3};
+  document.querySelectorAll('.nav-tab')[idx[id]].classList.add('active');
+  render();
+}
+
+async function fetchPrice(ticker){
+  try{
+    const url=`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d`;
+    const res=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+    const j=await res.json();const d=JSON.parse(j.contents);
+    const m=d?.chart?.result?.[0]?.meta;
+    return m?.regularMarketPrice??m?.previousClose??null;
+  }catch{return null;}
+}
+
+async function refreshPrices(){
+  const btn=$('refresh-btn');btn.disabled=true;btn.classList.add('spinning');
+  await fetchFX();
+  const prices=await Promise.all(stocks.map(s=>fetchPrice(TICKER_MAP[s.wkn]||s.wkn)));
+  stocks.forEach((s,i)=>{if(prices[i]!==null){s.price=prices[i];s.todayPnL=null;}});
+  render();
+  btn.disabled=false;btn.classList.remove('spinning');
+  $('last-upd').textContent=`Prices updated · ${new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})} · USD/EUR ${USD_EUR.toFixed(4)} · GBP/EUR ${GBP_EUR.toFixed(4)} · CHF/EUR ${CHF_EUR.toFixed(4)}`;
+  toast('Prices refreshed');
+}
+
+function brokerTotals(broker){
+  const ss=stocks.filter(s=>s.broker===broker);
+  const mv=ss.reduce((t,s)=>t+sMvEUR(s),0);
+  const inv=ss.reduce((t,s)=>t+sInvEUR(s),0);
+  return{mv,inv,pnl:mv-inv,ret:(mv-inv)/inv*100,count:ss.length};
+}
+
+function render(){renderOverview();renderVenture();renderStocks();renderProperty();}
+
+// ══ OVERVIEW ══
+function renderOverview(){
+  const mv=stocks.reduce((t,s)=>t+sMvEUR(s),0);
+  const inv=stocks.reduce((t,s)=>t+sInvEUR(s),0);
+  const sPnL=mv-inv; const sRet=sPnL/inv*100;
+  const c=brokerTotals('consors');const m=brokerTotals('merrill');
+  const merrillUSD=stocks.filter(s=>s.broker==='merrill').reduce((t,s)=>t+s.units*s.price,0);
+  const vcInv=vc.reduce((s,v)=>s+vcInvEUR(v),0);
+  const vcVal=vc.reduce((s,v)=>s+vcImpl(v)+v.realized,0);
+  const vcReal=vc.reduce((s,v)=>s+v.realized,0);
+  const tvpi=vcVal/vcInv;const dpi=vcReal/vcInv;const rvpi=tvpi-dpi;
+  const firstYr=Math.min(...vc.map(v=>v.vintage));
+  const yrs=new Date().getFullYear()-firstYr;
+  const grossIRR=irrC(vcInv,vcVal,yrs);
+  const mb=currentBalance();
+  const propEq=propState.currentValue-mb.balance;
+  const total=mv+vcVal+propEq;
+
+  const sv=(id,val,cls)=>{const e=$(id);if(!e)return;e.textContent=val;if(cls!==undefined){const b=e.className.includes('lg')?'kpi-value lg':'kpi-value';e.className=b+(cls?' '+cls:'');}};
+  sv('ov-total',fEUR(total));
+  $('ov-gain').textContent=`${fEUR(sPnL+vcVal-vcInv)} unrealised gain`;
+  sv('ov-stocks',fEUR(mv));sv('ov-vc',fEUR(vcVal));sv('ov-prop',fEUR(propEq));
+  $('ov-stocks-pct').textContent=`${total>0?((mv/total)*100).toFixed(1):0}% of portfolio`;
+  $('ov-vc-pct').textContent=`${total>0?((vcVal/total)*100).toFixed(1):0}% of portfolio`;
+  $('ov-prop-pct').textContent=`${total>0?((propEq/total)*100).toFixed(1):0}% of portfolio`;
+  $('ov-consors-val').textContent=fEUR(c.mv);
+  $('ov-consors-val').className='broker-main '+(c.pnl>=0?'pos':'neg');
+  $('ov-consors-detail').textContent=`Depot 878707346 · ${c.count} positions · ${fPct(c.ret)}`;
+  $('ov-merrill-val').textContent=fEUR(m.mv);
+  $('ov-merrill-val').className='broker-main '+(m.pnl>=0?'pos':'neg');
+  $('ov-merrill-detail').textContent=`Acct 8ZR-26067 · ${fUSD(merrillUSD)} USD · ${fPct(m.ret)}`;
+  sv('ov-tvpi',fX(tvpi),tvpi>=1?'pos':'neg');sv('ov-dpi',fX(dpi));sv('ov-rvpi',fX(rvpi));
+  sv('ov-irr',fPct(grossIRR),grossIRR>=0?'pos':'neg');
+  sv('ov-deployed',fEUR(vcInv));
+  $('ov-reserve').textContent=`Reserve: ${fEUR(RESERVE_BUDGET-vcInv)}`;
+  sv('ov-pace',fEUR(vcInv/Math.max(yrs,1)));
+  sv('ov-smv',fEUR(mv));sv('ov-sinv',fEUR(inv));
+  sv('ov-spnl',fEUR(sPnL),cc(sPnL));sv('ov-sret',fPct(sRet),cc(sPnL));
+
+  const cols=['#1a5c35','#1a3a6b','#8a5a00'];
+  const labels=['Equities','Venture','Property'];
+  const vals=[mv,vcVal,propEq];
+  const bar=$('alloc-bar'),legend=$('alloc-legend');
+  bar.innerHTML='';legend.innerHTML='';
+  vals.forEach((v,i)=>{
+    const pct=total>0?(v/total)*100:0;
+    const seg=document.createElement('div');seg.className='alloc-seg';
+    seg.style.cssText=`width:${pct.toFixed(2)}%;background:${cols[i]}`;bar.appendChild(seg);
+    const item=document.createElement('div');item.className='alloc-item';
+    item.innerHTML=`<div class="alloc-dot" style="background:${cols[i]}"></div>${labels[i]} — ${pct.toFixed(1)}% · ${fEUR(v)}`;
+    legend.appendChild(item);
+  });
+}
+
+// ══ PROPERTY ══
+function renderProperty(){
+  const mb = currentBalance();
+  const cv = propState.currentValue;
+  const balance = mb.balance;
+  const equity = cv - balance;
+  const equityPct = (equity/cv)*100;
+  const ltv = (balance/cv)*100;
+  const appreciation = cv - MTG.purchasePrice;
+  const appreciationPct = (appreciation/MTG.purchasePrice)*100;
+
+  // Months elapsed
+  const now = new Date();
+  const monthsElapsed = mb.monthsElapsed;
+
+  // Payments
+  const totalPaid = mb.totalPaid;
+  const cumulInt  = mb.cumulInt;
+  const cumulPrin = mb.cumulPrin + propState.sonderUsed;
+  const lifetimeInt = lifetimeInterest();
+  const intRemaining = lifetimeInt - cumulInt;
+
+  // Current month split
+  const split = currentMonthSplit();
+
+  // ROE — annual appreciation / equity
+  const yearsOwned = Math.max(monthsElapsed/12, 0.001);
+  const annualAppreciation = appreciation / yearsOwned;
+  const roe = equity > 0 ? (annualAppreciation / equity)*100 : 0;
+
+  // Total return = appreciation + principal repaid
+  const totalReturn = appreciation + cumulPrin;
+  const totalReturnPct = (totalReturn / MTG.ownFunds)*100;
+
+  // DSR — CHF income converted to EUR at live rate
+  const monthlyIncomeEUR = propState.monthlyIncomeCHF * CHF_EUR;
+  const dsr = (MTG.monthlyPayment / monthlyIncomeEUR)*100;
+  const incomeEurSub=$('pr-income-eur-sub');
+  if(incomeEurSub) incomeEurSub.textContent=`≈ ${fEUR(monthlyIncomeEUR)} · CHF/EUR ${CHF_EUR.toFixed(4)}`;
+
+  // Remaining term
+  const msToEnd = MTG.endDate - now;
+  const yearsLeft = Math.max(msToEnd / (1000*60*60*24*365.25), 0);
+  const msToFix   = MTG.fixedUntil - now;
+  const yearsToFix= Math.max(msToFix / (1000*60*60*24*365.25), 0);
+
+  // Refinancing signal: compare current rate vs hypothetical market rate
+  const marketRate = 3.80; // approximate current market (editable concept)
+  const refiSaving = ((MTG.rateAnnual - marketRate/100) * balance / 12).toFixed(0);
+  const refiSignal = MTG.rateAnnual > marketRate/100 ? 'Above market' : 'Below market';
+
+  // ── Set KPIs ──
+  const sv=(id,val,cls)=>{const e=$(id);if(!e)return;e.textContent=val;if(cls!==undefined){const b=e.className.includes('lg')?'kpi-value lg':'kpi-value';e.className=b+(cls?' '+cls:'');}};
+
+  sv('pr-equity',fEUR(equity));
+  $('pr-equity-pct').textContent=`${equityPct.toFixed(1)}% of property value`;
+  sv('pr-value',fEUR(cv));
+  $('pr-apprc').textContent=`${fPct1(appreciationPct)} since purchase`;
+  $('pr-apprc').className='kpi-sub '+(appreciation>=0?'pos':'neg');
+  sv('pr-balance',fEUR(balance));
+  $('pr-balance-sub').textContent=`Started at ${fEUR(MTG.amount)}`;
+  sv('pr-ltv',ltv.toFixed(1)+'%', ltv>80?'warn':ltv>60?'':'pos');
+  $('pr-ltv-sub').textContent=ltv<=80?'Below 80% — healthy':'Above 80% — monitor';
+
+  sv('pr-total-paid',fEUR(totalPaid));
+  $('pr-months-paid').textContent=`${monthsElapsed} month${monthsElapsed!==1?'s':''} of payments`;
+  sv('pr-principal-paid',fEUR(cumulPrin));
+  $('pr-principal-pct').textContent=`${((cumulPrin/MTG.amount)*100).toFixed(2)}% of loan repaid`;
+  sv('pr-interest-paid',fEUR(cumulInt));
+  $('pr-interest-pct').textContent=`${totalPaid>0?((cumulInt/totalPaid)*100).toFixed(1):0}% of payments so far`;
+  sv('pr-total-interest',fEUR(lifetimeInt));
+  $('pr-interest-remaining').textContent=`${fEUR(intRemaining)} remaining`;
+
+  sv('pr-roe',fPct1(roe),roe>0?'pos':'neg');
+  sv('pr-total-return',fEUR(totalReturn));
+  $('pr-total-return').nextElementSibling && ($('pr-total-return').nextElementSibling.textContent=`${fPct1(totalReturnPct)} on own funds`);
+  sv('pr-dsr',dsr.toFixed(1)+'%',dsr>40?'neg':dsr>30?'warn':'pos');
+  $('pr-dsr-sub').textContent=`€1,750.85/mo vs CHF ${propState.monthlyIncomeCHF.toLocaleString()} (≈${fEUR(monthlyIncomeEUR)})/mo`;
+  sv('pr-term',yearsLeft.toFixed(1)+' yrs');
+  sv('pr-refi',refiSignal,MTG.rateAnnual>marketRate/100?'warn':'pos');
+  $('pr-refi-sub').textContent=`4.32% vs est. market ${marketRate}% · ${MTG.fixedUntil.toLocaleDateString('en-GB',{month:'short',year:'numeric'})} refx`;
+
+  // Editable fields display
+  $('pr-edit-value').textContent=fEUR(cv);
+  $('pr-edit-income').textContent=`CHF ${propState.monthlyIncomeCHF.toLocaleString()}`;
+  $('pr-edit-sonder').textContent=fEUR(propState.sonderUsed);
+
+  // ── Payment bar ──
+  const pbc=$('payment-bar-container');
+  const intPct=(split.interest/MTG.monthlyPayment)*100;
+  const prinPct=100-intPct;
+  pbc.innerHTML=`
+    <div style="font-family:'DM Mono',monospace;font-size:18px;font-weight:500;margin-bottom:8px">${fEUR2(MTG.monthlyPayment)}</div>
+    <div class="payment-bar">
+      <div class="payment-seg" style="width:${intPct.toFixed(1)}%;background:var(--red)"></div>
+      <div class="payment-seg" style="width:${prinPct.toFixed(1)}%;background:var(--green)"></div>
+    </div>
+    <div class="payment-legend">
+      <div class="payment-item"><div class="payment-dot" style="background:var(--red)"></div>Interest ${fEUR2(split.interest)} (${intPct.toFixed(1)}%)</div>
+      <div class="payment-item"><div class="payment-dot" style="background:var(--green)"></div>Principal ${fEUR2(split.principal)} (${prinPct.toFixed(1)}%)</div>
+    </div>`;
+
+  // ── LTV track ──
+  const ltcEl=$('ltv-track-container');
+  const ltvAtFix=(MTG.residualAtFix/cv)*100;
+  ltcEl.innerHTML=`
+    <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-4);margin-bottom:4px">
+      <span>Now: ${ltv.toFixed(1)}%</span><span>2036: ${ltvAtFix.toFixed(1)}%</span><span>2056: 0%</span>
+    </div>
+    <div class="ltv-track"><div class="ltv-fill" style="width:${ltv.toFixed(1)}%;background:${ltv>80?'var(--amber)':'var(--blue)'}"></div></div>
+    <div style="display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-4);margin-top:4px">
+      <span>▼ ${fEUR(balance)}</span><span>${fEUR(MTG.residualAtFix)}</span><span>€0</span>
+    </div>`;
+
+  // ── Amortisation schedule ──
+  const sched = buildAmortSchedule(propState.sonderUsed);
+  const tbody = $('amort-tbody');
+  tbody.innerHTML='';
+  sched.forEach(r=>{
+    const tr=document.createElement('tr');
+    if(r.isCurrent) tr.className='highlight';
+    else if(r.isFixEnd) tr.className='fixend';
+    const ltvY=(r.closeBalance/cv)*100;
+    const eqY=cv-r.closeBalance;
+    tr.innerHTML=`
+      <td><strong>${r.year}</strong>${r.isCurrent?' <span class="tag tg" style="font-size:8px">NOW</span>':''}${r.isFixEnd?' <span class="tag ta" style="font-size:8px">FIX END</span>':''}</td>
+      <td>${fEUR(r.openBalance)}</td>
+      <td>${fEUR(r.annualPayment)}</td>
+      <td class="neg">${fEUR(r.interest)}</td>
+      <td class="pos">${fEUR(r.principal)}</td>
+      <td class="neg">${fEUR(r.cumulInterest)}</td>
+      <td class="pos">${fEUR(r.cumulPrincipal)}</td>
+      <td>${fEUR(r.closeBalance)}</td>
+      <td class="${ltvY>80?'warn':''}">${ltvY.toFixed(1)}%</td>
+      <td class="pos">${fEUR(eqY)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ══ EDITABLE PROPERTY VALUES ══
+function editPropValue(){
+  const el=$('pr-edit-value');
+  const inp=document.createElement('input');inp.className='ci';inp.style.fontSize='22px';inp.style.width='150px';
+  inp.value=propState.currentValue;el.replaceWith(inp);inp.focus();inp.select();
+  const commit=()=>{const v=parseFloat(inp.value);if(!isNaN(v)&&v>0)propState.currentValue=v;render();};
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();});
+}
+function editPropIncome(){
+  const el=$('pr-edit-income');
+  const inp=document.createElement('input');inp.className='ci';inp.style.fontSize='22px';inp.style.width='150px';
+  inp.value=propState.monthlyIncomeCHF;el.replaceWith(inp);inp.focus();inp.select();
+  const commit=()=>{const v=parseFloat(inp.value);if(!isNaN(v)&&v>0)propState.monthlyIncomeCHF=v;render();};
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();});
+}
+function editSonder(){
+  const el=$('pr-edit-sonder');
+  const inp=document.createElement('input');inp.className='ci';inp.style.fontSize='22px';inp.style.width='150px';
+  inp.value=propState.sonderUsed;el.replaceWith(inp);inp.focus();inp.select();
+  const commit=()=>{const v=parseFloat(inp.value)||0;propState.sonderUsed=Math.min(v,MTG.sonderMax);render();};
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();});
+}
+
+// ══ VENTURE ══
+function renderVenture(){
+  const activeVc = vc.filter(v=>!v.future);
+  const vcInv=activeVc.reduce((s,v)=>s+vcInvEUR(v),0);
+  const vcVal=activeVc.reduce((s,v)=>s+vcImpl(v)+v.realized,0);
+  const vcReal=activeVc.reduce((s,v)=>s+v.realized,0);
+  const tvpi=vcInv>0?vcVal/vcInv:0;const dpi=vcInv>0?vcReal/vcInv:0;const rvpi=tvpi-dpi;
+  const firstYr=Math.min(...activeVc.map(v=>v.vintage));
+  const yrs=new Date().getFullYear()-firstYr;
+  const grossIRR=irrC(vcInv,vcVal,yrs);
+  const moics=activeVc.map(v=>vcMoic(v)).filter(x=>x!=null&&isFinite(x));
+  const irrs=activeVc.map(v=>vcIrr(v)).filter(x=>x!=null&&isFinite(x));
+  const sv=(id,val,cls)=>{const e=$(id);if(!e)return;e.textContent=val;if(cls!==undefined){const b=e.className.includes('lg')?'kpi-value lg':'kpi-value';e.className=b+(cls?' '+cls:'');}};
+  sv('vc-tvpi',fX(tvpi),tvpi>=1?'pos':'neg');sv('vc-dpi',fX(dpi));sv('vc-rvpi',fX(rvpi));
+  sv('vc-irr',fPct(grossIRR),grossIRR>=0?'pos':'neg');sv('vc-inv',fEUR(vcInv));
+  $('vc-res-lbl').textContent=`Reserve: ${fEUR(RESERVE_BUDGET-vcInv)}`;
+  sv('vc-moic',fX(tvpi),tvpi>=1?'pos':'neg');
+  sv('vc-med-moic',fX(median(moics)));sv('vc-avg-moic',fX(mean(moics)));
+  sv('vc-med-irr',fPct(median(irrs)));sv('vc-avg-irr',fPct(mean(irrs)));
+
+  const wo=activeVc.filter(v=>v.writeoff).length;const grad=activeVc.filter(v=>v.graduated).length;
+  const health=[
+    {label:'Total Companies',  val:vc.length,         sub:`${activeVc.length} active · ${vc.filter(v=>v.future).length} reserved`,pct:null,col:'#1a3a6b'},
+    {label:'Write-off Rate',   val:((wo/activeVc.length)*100).toFixed(0)+'%',sub:`${wo} written off`,pct:(wo/activeVc.length)*100,col:'#9b2222'},
+    {label:'Graduation Rate',  val:((grad/activeVc.length)*100).toFixed(0)+'%',sub:`${grad} raised next round`,pct:(grad/activeVc.length)*100,col:'#1a5c35'},
+    {label:'Deployment Pace',  val:'€'+(vcInv/Math.max(yrs,1)/1000).toFixed(0)+'k',sub:'per year avg (EUR equiv)',pct:null,col:'#4a2070'},
+  ];
+  const hg=$('health-grid');hg.innerHTML='';
+  health.forEach(h=>{
+    const d=document.createElement('div');d.className='health-card';
+    d.innerHTML=`<div class="kpi-label">${h.label}</div><div class="kpi-value" style="font-size:20px">${h.val}</div><div class="kpi-sub" style="margin-top:4px">${h.sub}</div>${h.pct!=null?`<div class="hbar-bg"><div class="hbar-fill" style="width:${Math.min(h.pct,100).toFixed(0)}%;background:${h.col}"></div></div>`:''}`;
+    hg.appendChild(d);
+  });
+
+  const stageTag={Seed:'tg','Series A':'ta','Series B':'ta','Pre-Seed':'tb',Growth:'tp'};
+  const ccyTag={EUR:'tgr',GBP:'tp'};
+  const tbody=$('vc-tbody');tbody.innerHTML='';
+
+  // Sort: active first, then future, then writeoffs
+  const sorted=[...vc].sort((a,b)=>{
+    if(a.future&&!b.future) return 1; if(!a.future&&b.future) return -1;
+    if(a.writeoff&&!b.writeoff) return 1; if(!a.writeoff&&b.writeoff) return -1;
+    return a.vintage-b.vintage;
+  });
+
+  sorted.forEach((v)=>{
+    const i=vc.indexOf(v);
+    const invEUR=vcInvEUR(v);
+    const impl=vcImpl(v);
+    const moic=vcMoic(v);
+    const irrV=vcIrr(v);
+    const markup=invEUR>0?impl+v.realized-invEUR:null;
+    const sc=stageTag[v.stage]||'tgr';
+    const cc2=ccyTag[v.currency||'EUR']||'tgr';
+    const status=v.future?'Reserved':v.writeoff?'Written off':'Active';
+    const statusTag=v.future?'ta':v.writeoff?'tr':'tg';
+
+    // Display invested in original currency
+    const invDisplay=v.currency==='GBP'
+      ? `£${(v.investedOrig/1000).toFixed(0)}k <span style="color:var(--ink-4);font-size:10px">${fEUR(invEUR)}</span>`
+      : fEUR(invEUR);
+
+    const tr=document.createElement('tr');
+    if(v.future) tr.style.opacity='0.55';
+    tr.innerHTML=`
+      <td><strong>${v.company}</strong></td>
+      <td><span class="tag ${sc}">${v.stage}</span></td>
+      <td class="editable" onclick="evc(this,'vintage',${i})">${v.vintage}</td>
+      <td>${invDisplay}</td>
+      <td><span class="tag ${cc2}">${v.currency||'EUR'}</span></td>
+      <td class="editable" onclick="evc(this,'ownership',${i})">${v.ownership>0?v.ownership.toFixed(2)+'%':'—'}</td>
+      <td class="editable" onclick="evc(this,'lastVal',${i})">${v.lastVal>0?fEUR(v.lastVal):'—'}</td>
+      <td>${invEUR>0&&impl>0?fEUR(impl):'—'}</td>
+      <td class="${markup!=null?cc(markup):'neu'}">${markup!=null&&invEUR>0?fEUR(markup):'—'}</td>
+      <td>${v.narrativeMarkup?`<span class="tag ta">${fEUR(v.narrativeMarkup)}</span>`:'<span style="color:var(--ink-5)">—</span>'}</td>
+      <td>${v.roundMarkup?`<span class="tag tb">${fEUR(v.roundMarkup)}</span>`:'<span style="color:var(--ink-5)">—</span>'}</td>
+      <td>${moic!=null&&invEUR>0?`<span class="tag ${tagM(moic)}">${fX(moic)}</span>`:'—'}</td>
+      <td class="${irrV!=null?cc(irrV):'neu'}">${irrV!=null&&invEUR>0?fPct(irrV):'—'}</td>
+      <td class="editable" onclick="evc(this,'realized',${i})">${v.realized>0?fEUR(v.realized):'—'}</td>
+      <td><span class="tag ${statusTag}">${status}</span></td>`;
+    tbody.appendChild(tr);
+  });
+
+  const tfoot=$('vc-tfoot');
+  tfoot.innerHTML=`<tr>
+    <td>Portfolio Total (${vc.length} cos · EUR equiv)</td>
+    <td></td><td></td>
+    <td>${fEUR(vcInv)}</td>
+    <td></td><td></td><td></td>
+    <td>${fEUR(vcVal-vcReal)}</td>
+    <td class="${cc(vcVal-vcInv)}">${fEUR(vcVal-vcInv)}</td>
+    <td><span class="tag ${tagM(tvpi)}">${fX(tvpi)}</span></td>
+    <td class="${grossIRR!=null?cc(grossIRR):'neu'}">${fPct(grossIRR)}</td>
+    <td>${fEUR(vcReal)}</td><td></td>
+  </tr>`;
+
+  // Vintage cohort
+  const vintages=[...new Set(activeVc.map(v=>v.vintage))].sort();
+  const vbody=$('vintage-tbody');vbody.innerHTML='';
+  vintages.forEach(yr=>{
+    const c=activeVc.filter(v=>v.vintage===yr);
+    const inv=c.reduce((s,v)=>s+vcInvEUR(v),0);
+    const val=c.reduce((s,v)=>s+vcImpl(v)+v.realized,0);
+    const m=inv>0?val/inv:0;const r=irrC(inv,val,new Date().getFullYear()-yr);
+    const wo=c.filter(v=>v.writeoff).length;const gr=c.filter(v=>v.graduated).length;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><strong>${yr}</strong></td><td>${c.length}</td><td>${fEUR(inv)}</td><td>${fEUR(val)}</td><td>${inv>0?`<span class="tag ${tagM(m)}">${fX(m)}</span>`:'—'}</td><td class="${r!=null?cc(r):'neu'}">${r!=null?fPct(r):'—'}</td><td>${wo>0?`<span class="tag tr">${wo}</span>`:'<span class="tag tgr">0</span>'}</td><td>${gr}/${c.length}</td>`;
+    vbody.appendChild(tr);
+  });
+
+  // PME
+  const pg=$('pme-grid');pg.innerHTML='';
+  const vcIRRv=grossIRR||0;
+  [{name:'S&P 500',ret:13.5,note:'10-yr avg'},{name:'MSCI World',ret:11.2,note:'10-yr avg'},{name:'DAX',ret:9.8,note:'10-yr avg'},{name:'Top-Quartile VC',ret:22.0,note:'Cambridge Associates'}].forEach(b=>{
+    const alpha=vcIRRv-b.ret;
+    const d=document.createElement('div');d.className='pme-card';
+    d.innerHTML=`<div class="pme-title">${b.name}</div><div class="pme-row"><span class="pme-lbl">Your Venture IRR</span><span class="${cc(vcIRRv)}" style="font-weight:500">${fPct(vcIRRv)}</span></div><div class="pme-row"><span class="pme-lbl">${b.name}</span><span style="font-weight:500">${fPct(b.ret)}</span></div><div class="pme-row"><span class="pme-lbl">Alpha</span><span class="${cc(alpha)}" style="font-weight:500">${fPct(alpha)}</span></div><div class="pme-row"><span class="pme-lbl">Note</span><span style="font-size:10px;color:var(--ink-4)">${b.note}</span></div>`;
+    pg.appendChild(d);
+  });
+}
+
+// ══ STOCKS ══
+function renderStocks(){
+  const tbody=$('stocks-tbody');const tfoot=$('stocks-tfoot');tbody.innerHTML='';
+  let tInv=0,tMV=0;
+  [{key:'consors',label:'Consorsbank · Depot 878707346'},{key:'merrill',label:'Merrill Lynch · Acct 8ZR-26067'}].forEach(b=>{
+    const sep=document.createElement('tr');sep.className='broker-header-row';
+    sep.innerHTML=`<td colspan="12"><span class="tag ${b.key==='merrill'?'tm':'tc'}" style="margin-right:8px">${b.label}</span></td>`;
+    tbody.appendChild(sep);
+    stocks.filter(s=>s.broker===b.key).forEach(s=>{
+      const i=stocks.indexOf(s);
+      const inv=sInvEUR(s);const mv=sMvEUR(s);const pnl=mv-inv;const ret=pnl/inv*100;
+      tInv+=inv;tMV+=mv;
+      const priceDisplay=s.currency==='USD'?fUSD2(s.price):fEUR2(s.price);
+      const costDisplay=s.currency==='USD'?fUSD2(s.cost):fEUR2(s.cost);
+      const mvBoth=s.currency==='USD'?`${fEUR(mv)} <span style="color:var(--ink-4);font-size:10px">${fUSD(s.units*s.price)}</span>`:fEUR(mv);
+      const invBoth=s.currency==='USD'?`${fEUR(inv)} <span style="color:var(--ink-4);font-size:10px">${fUSD(s.units*s.cost)}</span>`:fEUR(inv);
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td><strong class="editable" onclick="estk(this,'name',${i})">${s.name}</strong><div style="font-size:10px;color:var(--ink-4);margin-top:1px;font-family:'DM Mono',monospace">${s.wkn}</div></td><td><span class="tag ${s.broker==='merrill'?'tm':'tc'}">${s.broker==='merrill'?'Merrill':'Consors'}</span></td><td><span class="tag ${s.type==='ETF'?'tb':'tgr'}">${s.type}</span></td><td class="editable" onclick="estk(this,'units',${i})">${fNum(s.units)}</td><td class="editable" onclick="estk(this,'cost',${i})">${costDisplay}</td><td class="editable" onclick="estk(this,'price',${i})">${priceDisplay}</td><td><span class="tag tgr">${s.currency}</span></td><td>${invBoth}</td><td>${mvBoth}</td><td class="${s.todayPnL!=null?cc(s.todayPnL):'neu'}">${s.todayPnL!=null?fEUR(s.todayPnL):'—'}</td><td class="${cc(pnl)}">${fEUR(pnl)}</td><td><span class="tag ${tagR(ret)}">${fPct(ret)}</span></td>`;
+      tbody.appendChild(tr);
+    });
+  });
+  const totPnL=tMV-tInv;const totRet=totPnL/tInv*100;
+  tfoot.innerHTML=`<tr><td>Combined Total</td><td></td><td></td><td></td><td></td><td></td><td></td><td>${fEUR(tInv)}</td><td>${fEUR(tMV)}</td><td>—</td><td class="${cc(totPnL)}">${fEUR(totPnL)}</td><td><span class="tag ${tagR(totRet)}">${fPct(totRet)}</span></td></tr>`;
+
+  const c=brokerTotals('consors');const m=brokerTotals('merrill');
+  const merrillUSD=stocks.filter(s=>s.broker==='merrill').reduce((t,s)=>t+s.units*s.price,0);
+  const sk=(id,val,cls)=>{const e=$(id);if(!e)return;e.textContent=val;if(cls!==undefined){const b=e.className.includes('lg')?'kpi-value lg':'kpi-value';e.className=b+(cls?' '+cls:'');}};
+  sk('pub-mv',fEUR(tMV));sk('pub-inv',fEUR(tInv));
+  sk('pub-pnl',fEUR(totPnL),cc(totPnL));sk('pub-ret',fPct(totRet),cc(totPnL));
+  sk('pub-consors-mv',fEUR(c.mv));
+  $('pub-consors-pnl').textContent=`P&L: ${fEUR(c.pnl)}`;$('pub-consors-pnl').className='kpi-sub '+cc(c.pnl);
+  $('pub-consors-ret').textContent=`Return: ${fPct(c.ret)}`;
+  sk('pub-merrill-mv',fEUR(m.mv));
+  $('pub-merrill-usd').textContent=`${fUSD(merrillUSD)} · Rate: ${USD_EUR.toFixed(4)}`;
+  $('pub-merrill-pnl').textContent=`P&L: ${fEUR(m.pnl)} · ${fPct(m.ret)}`;$('pub-merrill-pnl').className='kpi-sub '+cc(m.pnl);
+}
+
+// ══ INLINE EDIT ══
+function estk(el,field,idx){
+  const orig=stocks[idx][field];const inp=document.createElement('input');inp.className='ci';inp.value=orig;
+  el.replaceWith(inp);inp.focus();inp.select();
+  const commit=()=>{stocks[idx][field]=isNaN(inp.value)?inp.value:parseFloat(inp.value)||orig;render();};
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();});
+}
+function evc(el,field,idx){
+  const orig=vc[idx][field];const inp=document.createElement('input');inp.className='ci';inp.value=orig;
+  el.replaceWith(inp);inp.focus();inp.select();
+  const commit=()=>{vc[idx][field]=isNaN(inp.value)?inp.value:parseFloat(inp.value)||orig;render();};
+  inp.addEventListener('blur',commit);inp.addEventListener('keydown',e=>{if(e.key==='Enter')inp.blur();});
+}
+function addStockRow(){stocks.push({name:'New Position',wkn:'—',type:'Aktie',broker:'consors',currency:'EUR',units:0,cost:0,price:0,todayPnL:null});render();}
+function addVCRow(){vc.push({company:'New Co',stage:'Pre-Seed',vintage:new Date().getFullYear(),invested:0,entryVal:0,ownership:0,lastVal:0,realized:0,writeoff:false,graduated:false});render();}
+
+// ══ PORTFOLIO INTELLIGENCE SYNC ══
+// Stores pending proposals keyed by company name
+let pendingProposals = {};
+
+// Gmail search via MCP — called from the artifact via Anthropic API with Gmail MCP
+async function syncPortfolioUpdates(){
+  const btn = $('sync-btn');
+  const statusEl = $('sync-status');
+  btn.disabled = true; btn.classList.add('spinning');
+  statusEl.style.display = 'block';
+  statusEl.textContent = 'Searching Gmail for investor updates…';
+
+  const companies = vc.filter(v=>!v.writeoff&&!v.future).map(v=>v.company);
+  const query = companies.map(c=>c.replace(/[^a-zA-Z0-9]/g,' ').trim()).join(' OR ');
+
+  try {
+    // Step 1: Call Anthropic API with Gmail MCP to search + read update emails
+    statusEl.textContent = 'Reading investor updates, closing docs & round signals (90 days) via AI…';
+
+    const systemPrompt = `You are a portfolio assistant for an angel investor named Anna Ritz.
+You have access to Gmail via MCP. Your job is to:
+1. Search Gmail for relevant emails in the last 90 days from the following portfolio companies: ${companies.join(', ')}. Search both emails sent to anna.ritz@legata.cc AND emails sent to ar@angelinvest.ventures (Anna is a member of AngelInvest Ventures and receives deal updates via that address too). Look for: investor update emails, monthly/quarterly reports, term sheets, investment agreement closings, DocuSign completion notices for investment documents, shareholder notices from lawyers, cap table updates, and funding round announcements. Exclude Qonto payment transfer confirmation emails entirely.
+2. For each company that has a relevant email, read the email content
+3. Return a JSON array (and nothing else — no markdown, no preamble) with this structure:
+[{
+  "company": "exact company name from this list: ${companies.join(', ')}",
+  "updateDate": "YYYY-MM-DD",
+  "subject": "email subject",
+  "signalType": "growth" | "risk" | "neutral" | "round",
+  "headline": "one crisp sentence summarising the single most important development",
+  "keyFacts": ["fact 1", "fact 2", "fact 3"],
+  "proposedValuationLow": number_in_EUR_or_null,
+  "proposedValuationHigh": number_in_EUR_or_null,
+  "valuationReasoning": "2-3 sentences explaining why you propose this range, based solely on the update content. Do NOT apply a revenue multiple — just flag the signals and let the investor decide the number. If no valuation can be inferred, set both to null.",
+  "isRoundBased": false,
+  "roundValuation": null
+}]
+Only include companies that have actual investor update emails. If a company has no update, omit it entirely. Be concise and factual.`;
+
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: `Search Gmail for the following types of emails in the last 90 days, for these portfolio companies: ${companies.join(', ')}. Search both anna.ritz@legata.cc and ar@angelinvest.ventures. Look for: (1) investor update emails, (2) term sheets, (3) investment agreement closings and DocuSign completions, (4) shareholder notices from lawyers, (5) cap table updates, (6) funding round announcements. Exclude any Qonto transfer confirmation emails. Return the JSON array as instructed.` }],
+        mcp_servers: [{
+          type: 'url',
+          url: 'https://gmailmcp.googleapis.com/mcp/v1',
+          name: 'gmail-mcp'
+        }]
+      })
+    });
+
+    const data = await response.json();
+
+    // Extract text content from response
+    const textBlocks = (data.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('');
+    // Strip any markdown fences
+    const clean = textBlocks.replace(/```json|```/g,'').trim();
+
+    let updates = [];
+    try { updates = JSON.parse(clean); } catch(e) {
+      // Try to extract JSON array from within the text
+      const match = clean.match(/\[[\s\S]*\]/);
+      if(match) updates = JSON.parse(match[0]);
+    }
+
+    if(!Array.isArray(updates)||updates.length===0){
+      statusEl.textContent = 'No new investor updates found in the last 60 days.';
+      btn.disabled=false; btn.classList.remove('spinning');
+      return;
+    }
+
+    // Render update cards
+    statusEl.textContent = `Found ${updates.length} update${updates.length!==1?'s':''} — review proposals below`;
+    renderUpdateCards(updates);
+
+  } catch(err) {
+    statusEl.textContent = `Sync failed: ${err.message}`;
+    console.error(err);
+  }
+
+  btn.disabled=false; btn.classList.remove('spinning');
+}
+
+function renderUpdateCards(updates){
+  const container = $('update-cards');
+  container.innerHTML = '';
+  pendingProposals = {};
+
+  updates.forEach(u => {
+    pendingProposals[u.company] = u;
+    const vcIdx = vc.findIndex(v=>v.company.toLowerCase()===u.company.toLowerCase());
+    const sigClass = {growth:'sig-growth',risk:'sig-risk',neutral:'sig-neutral',round:'sig-round'}[u.signalType]||'sig-neutral';
+    const sigLabel = {growth:'↑ Growth',risk:'⚠ Risk',neutral:'· Neutral',round:'◎ Round'}[u.signalType]||'Neutral';
+
+    const hasValuation = u.proposedValuationLow!=null||u.proposedValuationHigh!=null;
+    const valDisplay = hasValuation
+      ? (u.proposedValuationLow&&u.proposedValuationHigh
+          ? `${fEUR(u.proposedValuationLow)} – ${fEUR(u.proposedValuationHigh)}`
+          : fEUR(u.proposedValuationLow||u.proposedValuationHigh))
+      : 'Insufficient data';
+
+    const card = document.createElement('div');
+    card.className = 'update-card';
+    card.id = `ucard-${u.company.replace(/\s/g,'_')}`;
+
+    card.innerHTML = `
+      <div class="update-card-header">
+        <div>
+          <div class="update-card-company">${u.company}</div>
+          <div class="update-card-meta">${u.updateDate||'—'} · ${u.subject||''}</div>
+        </div>
+        <span class="${sigClass}">${sigLabel}</span>
+      </div>
+      <div class="update-card-body">
+        <div>
+          <div class="update-signal"><strong>${u.headline||'—'}</strong></div>
+          ${(u.keyFacts||[]).map(f=>`<div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--ink-3);margin-top:4px;padding-left:10px;border-left:2px solid var(--border)">· ${f}</div>`).join('')}
+          <div class="update-reasoning">${u.valuationReasoning||'No valuation signal in this update.'}</div>
+        </div>
+        <div class="update-actions">
+          <div class="markup-proposal">
+            <div class="markup-proposal-label">Narrative markup proposal</div>
+            <div class="markup-proposal-range">${hasValuation?valDisplay:'No data'}</div>
+            <div class="markup-proposal-sub">Based on update signals only</div>
+            ${hasValuation?`<input class="markup-input" id="input-narrative-${u.company.replace(/\s/g,'_')}" placeholder="Adjust valuation…" style="margin-top:8px">`:''}
+          </div>
+          ${u.isRoundBased?`
+          <div class="markup-proposal">
+            <div class="markup-proposal-label">Round-based markup</div>
+            <div class="markup-proposal-range">${fEUR(u.roundValuation)||'—'}</div>
+            <div class="markup-proposal-sub">Closed funding round valuation</div>
+          </div>`:''}
+          <div class="markup-btn-row">
+            <button class="markup-btn accept" onclick="applyMarkup('${u.company}',${vcIdx},false)">Apply</button>
+            <button class="markup-btn" onclick="applyMarkup('${u.company}',${vcIdx},true)">Adjust</button>
+            <button class="markup-btn dismiss" onclick="dismissCard('${u.company}')">Dismiss</button>
+          </div>
+        </div>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+function applyMarkup(company, vcIdx, useInput){
+  const u = pendingProposals[company];
+  if(!u||vcIdx<0) return;
+  const cardId = `ucard-${company.replace(/\s/g,'_')}`;
+  const inputId = `input-narrative-${company.replace(/\s/g,'_')}`;
+
+  let valuation;
+  if(useInput){
+    const inp = $(inputId);
+    valuation = inp ? parseFloat(inp.value.replace(/[^0-9.]/g,'')) : null;
+    if(!valuation||isNaN(valuation)){ toast('Enter a valuation in the input field first'); return; }
+  } else {
+    // Use midpoint of proposed range, or single value
+    if(u.proposedValuationLow!=null&&u.proposedValuationHigh!=null){
+      valuation = (u.proposedValuationLow+u.proposedValuationHigh)/2;
+    } else {
+      valuation = u.proposedValuationLow||u.proposedValuationHigh||null;
+    }
+  }
+
+  if(valuation){
+    vc[vcIdx].narrativeMarkup = valuation;
+    vc[vcIdx].lastVal = valuation; // update lastVal so MOIC/IRR recalculate
+    if(u.isRoundBased&&u.roundValuation) vc[vcIdx].roundMarkup = u.roundValuation;
+  }
+
+  const card = $(cardId);
+  if(card){ card.classList.add('applied'); card.querySelector('.markup-btn-row').innerHTML=`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--green)">✓ Applied ${fEUR(valuation)}</span>`; }
+  render();
+  toast(`${company} markup applied at ${fEUR(valuation)}`);
+}
+
+function dismissCard(company){
+  const card = $(`ucard-${company.replace(/\s/g,'_')}`);
+  if(card) card.classList.add('dismissed');
+  delete pendingProposals[company];
+}
+
+$('nav-date').textContent=new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+render();
+fetchFX().then(()=>refreshPrices());
+</script>
+
+</body>
+</html>
